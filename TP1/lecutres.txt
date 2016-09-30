@@ -1,0 +1,3 @@
+On remarque que les fonctions C limitent la lecture du fichier à un seul processus, ce qui permet de lire les caractères et de les afficher dans le même ordre que celui du fichier. En revanche, pour les fonctions POSIX, les caractères sont lus par tous les processus de manière concurrente, l'ordre de leur affichage ne correspond donc pas à celui du fichier. 
+
+Car les fonctions C bufferisent les caractères lus, le premier processus lit donc tous les caractères du fichier et les autres n'en ont plus a lire.

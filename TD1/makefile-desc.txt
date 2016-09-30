@@ -1,0 +1,12 @@
+à quoi sert la ligne .SUFFIXES ?
+Ajouter de nouveaux suffixes à la liste des suffixes par défaut.
+
+à quoi sert la ligne .PHONY ?
+.PHONY sert à considérer une cible comme une commande à exécuter et non comme un nom de fichier si celui si existe déjà.
+
+à quoi sert la ligne $(BIN)%: $(OBJ)%.o $O ?
+
+
+à quoi sert la ligne $(OBJ)%.o: $(SRC)%.c $(HC) ?
+à quoi sert le signe "-" à certains endroits ?
+à quoi sert le doublement du signe "$" à certains endroits ?

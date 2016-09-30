@@ -1,0 +1,18 @@
+Processus principal inclus, il y a 4 processus créés.
+
+
+				
+
+					processus principal (1.0)
+					"2 fils", i=2, j=0
+
+
+		1.1										1.1.2
+		"1 fils", i=2, j=1						"sans fils", i=2, j=2
+
+
+ 		1.1.1
+ 		"sans fils", i=2, j=2 
+
+
+ En remplacement l'appel système sleep par les 2 execl et execv du binaire sleep, le nombre de processus créés ne change pas car exec ne créé pas de nouveau processus, en revanche l'affichage "sans fils" est perdu car le code du processus est écrasé par celui de sleep.
