@@ -17,7 +17,7 @@ int main(int argc, char const *argv[])
 {
 
 	int fd1, fd2;
-	int lus;
+	int ecris = 0, filesize;
 	char c;
 	int debut = -1;
 
@@ -37,17 +37,14 @@ int main(int argc, char const *argv[])
       return errno;
     }
 
-	lseek(fd1, -1, SEEK_END);
-	lus = read(fd1, &c, 1);
-	while(lus != 0 && debut != 0) {
-		if (write (fd2, &c, 1) == -1) {
+	filesize = lseek(fd1, -1, SEEK_END) + 1;
+	while((read(fd1, &c, 1) != 0) && (ecris != filesize)) {
+		if ((ecris += write (fd2, &c, 1)) == -1) {
 			perror("fd_write");
 			return errno;
 		}
 
-		debut = lseek(fd1, -2, SEEK_CUR);
-
-		lus = read(fd1, &c, 1);
+		lseek(fd1, -2, SEEK_CUR);
 	}
 
 	return EXIT_SUCCESS;
