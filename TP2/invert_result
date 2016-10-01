@@ -1,18 +1,16 @@
+
 }
 ;SSECCUS_TIXE nruter	
 
 }	
-;)1 ,c& ,1df(daer = sul		
-
-;)RUC_KEES ,2- ,1df(keesl = tubed		
+;)RUC_KEES ,2- ,1df(keesl		
 
 }		
 ;onrre nruter			
 ;)"etirw_df"(rorrep			
-{ )1- == )1 ,c& ,2df( etirw( fi		
-{ )0 =! tubed && 0 =! sul(elihw	
-;)1 ,c& ,1df(daer = sul	
-;)DNE_KEES ,1- ,1df(keesl	
+{ )1- == ))1 ,c& ,2df( etirw =+ sirce(( fi		
+{ ))eziselif =! sirce( && )0 =! )1 ,c& ,1df(daer((elihw	
+;1 + )DNE_KEES ,1- ,1df(keesl = eziselif	
 
 }    
 ;onrre nruter      
@@ -32,7 +30,7 @@
 
 ;1- = tubed tni	
 ;c rahc	
-;sul tni	
+;eziselif ,0 = sirce tni	
 ;2df ,1df tni	
 
 {
@@ -51,4 +49,4 @@
 >h.dtsinu< edulcni#
 >h.bildts< edulcni#
 >h.oidts< edulcni#
-007 ECRUOS_NEPOX_ enifed
+007 ECRUOS_NEPOX_ enifed#
