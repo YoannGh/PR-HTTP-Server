@@ -47,5 +47,8 @@ int main(int argc, char const *argv[])
 		lseek(fd1, -2, SEEK_CUR);
 	}
 
+	close(fd1);
+	close(fd2);
+
 	return EXIT_SUCCESS;
 }

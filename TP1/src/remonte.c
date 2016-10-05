@@ -56,10 +56,11 @@ int main(int argc, char const **argv)
 
 		}
 	
-		close(fd);
-	
 		printf("SOMME: %d\n", sum);
 	}
+
+	close(fd);
+
 	return 0;
 }
 

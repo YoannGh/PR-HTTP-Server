@@ -44,5 +44,7 @@ int main(int argc, char const *argv[])
     Restaurer_stdout(fdsave);
     printf("Apres_restauration\n");
 
+    close(fd);
+
 	return EXIT_SUCCESS;
 }

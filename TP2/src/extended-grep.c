@@ -88,7 +88,8 @@ int main(int argc, char const *argv[])
 			}
 		}
 	}
-
+	
+	free(path);
    	closedir(d);
 
   	printf("%d fichiers trouves\n", cpt);

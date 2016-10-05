@@ -54,5 +54,7 @@ int main(int argc, char const *argv[])
       return errno;
   }
 
+  close(fd);
+
 	return EXIT_SUCCESS;
 }
