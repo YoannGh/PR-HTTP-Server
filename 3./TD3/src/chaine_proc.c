@@ -9,50 +9,58 @@
 
 int main(int argc, char const *argv[])
 {
-	int* pids;
-	int nbProc, i, p, random;
+    int* pids;
+    int nbProc, i, p, random;
 
-	if (argc != 2)
-	{
-		printf("Error args\n");
-		return EXIT_FAILURE;
-	}
+    if (argc != 2)
+    {
+        printf("Error args\n");
+        return EXIT_FAILURE;
+    }
 
-	nbProc = atoi(argv[1]);
+    nbProc = atoi(argv[1]);
 
-	pids = malloc(nbProc+1);
+    pids = calloc(nbProc+1, sizeof(int));
 
-	for(i = 0; i < nbProc+1; i++) {
-		printf("%d\n", i);
-		pids[i] = getpid();
-		if((p = fork()) == -1) {
- 			perror("Erreur fork");
- 		}
- 		else if(p != 0) {
- 			if(i == 0)
- 				printf("pere ici\n");
- 			break;
- 		}
-	}
+    for(i = 0; i < nbProc; i++) {
+        if((p = fork()) == -1) {
+            perror("Erreur fork");
+        }
+        /* printf("%d\n", i);*/
+        pids[i] = getpid();
+        if(p) {
+            printf("break\n");
+            break;
+        }
 
-	if((i < nbProc+1) && (i != 0)) {
-		printf("%d Termine: pid: %d, ppid: %d, fpid: %d\n", i, getpid(), getppid(), wait(&random));
-		return random;
-	}
-	else if(i == 0) {
-		printf("%d Termine: pid: %d, ppid: %d, fpid: %d\n", i, getpid(), getppid(), wait(&random));
-		printf("Main proc: random: %d\n", random);
-		return EXIT_SUCCESS;
-	}
+    }
 
-	printf("Dernier fils: pids:\n");
-	for(i = 0; i < nbProc+1; i++)
-		printf("%d ", pids[i]);
-	printf("\n");
+    if(i == nbProc) { /* dernier processus fils */
+        printf("Dernier fils: pids:\n");
+        for(i = 0; i < nbProc; i++)
+            printf("%d ", pids[i]);
+        printf("\n");
+        free(pids);
 
+        srand(time(NULL));
+        random = (int)(rand () /(((double) RAND_MAX +1) /100));
+        printf("random dernier fils: %d, pid: %d\n", random, getpid());
+        exit(random);
+    }
+    else {
+        free(pids);
+        p = wait(&random);
+        printf("%d Termine: pid: %d, ppid: %d, fpid: %d\n", i, getpid(), getppid(), p);
 
-	srand(time(NULL));
-	random = (int)(rand () /(((double) RAND_MAX +1) /100));
-	printf("random dernier fils: %d\n", random);
-	return random;
+        if(i == 0) { /* le processus main */
+            printf("Main proc: random: %d\n", random); 
+            return EXIT_SUCCESS;
+        }
+        else {
+            printf("%d termine avec rand: %d\n",i, random);
+            exit(random);
+        }
+    }
+
+    return EXIT_SUCCESS;
 }
