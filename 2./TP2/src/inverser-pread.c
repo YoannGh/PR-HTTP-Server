@@ -27,41 +27,41 @@ int main(int argc, char const *argv[])
 	} 
 
 	if ((fd1 = open (argv[1], O_RDONLY)) == -1) {
-      perror("open fd");
-      return errno;
-    }
+		perror("open fd");
+		return errno;
+	}
 
 	if ((fd2 = open ("invert_result_pread", O_RDWR|O_CREAT|O_TRUNC, 0600)) == -1) {
-      perror("open fd");
-      return errno;
-    }
+		perror("open fd");
+		return errno;
+	}
 
-    if(stat(argv[1], &filestat) != 0) {
+	if(stat(argv[1], &filestat) != 0) {
 		printf("Impossible d'ouvrir le repertoire %s\n", argv[2]);
 		perror("rep");
 		return errno;
 	}
 
-    filesize = filestat.st_size;
+	filesize = filestat.st_size;
 
-    filebuffer = malloc(filesize);
+	filebuffer = malloc(filesize);
 
-    if(pread(fd1, filebuffer, (size_t) filesize, 0) == -1) {
-    	perror("pread");
+	if(pread(fd1, filebuffer, (size_t) filesize, 0) == -1) {
+		perror("pread");
 		return errno;
-    }
+	}
 
-    for(resteAEcrire = filesize; resteAEcrire != 0; resteAEcrire--) {
-    	if(pwrite(fd2, &filebuffer[resteAEcrire-1], 1, filesize - resteAEcrire) == -1) {
-    		perror("pwrite");
+	for(resteAEcrire = filesize; resteAEcrire != 0; resteAEcrire--) {
+		if(pwrite(fd2, &filebuffer[resteAEcrire-1], 1, filesize - resteAEcrire) == -1) {
+			perror("pwrite");
 			return errno;
-    	}
-    }
+		}
+	}
 
-    close(fd1);
-    close(fd2);
-    free(filebuffer);
+	close(fd1);
+	close(fd2);
+	free(filebuffer);
 
-    return EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 
 }
