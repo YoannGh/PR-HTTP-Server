@@ -19,7 +19,6 @@ int main(int argc, char const *argv[])
 	int fd1, fd2;
 	int ecris = 0, filesize;
 	char c;
-	int debut = -1;
 
 	if (argc != 2)
 	{
