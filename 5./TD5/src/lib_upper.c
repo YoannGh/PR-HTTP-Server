@@ -7,17 +7,16 @@
 #include <errno.h>
 #include "lib_upper.h"
 
-void* upper(void *path)
+int upper(char *path)
 {
-    char* p = path;
     FILE* fp1, *fp2;
     int c = 1;
 
-    fp1= fopen (p, "r");
-    fp2= fopen (p, "r+");
+    fp1= fopen (path, "r");
+    fp2= fopen (path, "r+");
     if ((fp1== NULL) || (fp2== NULL)) {
-        perror (p);
-	return errno;
+        perror (path);
+	   return errno;
     }
 
     while (c !=EOF) {

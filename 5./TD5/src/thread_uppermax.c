@@ -6,13 +6,33 @@
 #include <pthread.h>
 #include "lib_upper.h"
 
+int NB_FICHIER_TODO = 0;
+pthread_mutex_t mutex_nb_fichier = PTHREAD_MUTEX_INITIALIZER;
+
+void* upperDeleg(void* arg) {
+	char** paths = (char **) arg;
+	int *ret = malloc(sizeof(int));
+	pthread_mutex_lock(&mutex_nb_fichier);
+	while(NB_FICHIER_TODO > 0) {
+		int filenumber = NB_FICHIER_TODO;
+		NB_FICHIER_TODO--;
+		pthread_mutex_unlock(&mutex_nb_fichier);
+		*ret = upper(paths[filenumber+1]);
+		if((*ret) != 0)
+			pthread_exit(ret);
+		pthread_mutex_lock(&mutex_nb_fichier);
+	}
+	pthread_mutex_unlock(&mutex_nb_fichier);
+
+	pthread_exit(ret);
+}
 
 int main(int argc, char* argv[]) {
 
 	pthread_t* tids;
-	int nb_thread, nb_file;
+	int nb_thread;
 	int i, errorCount;
-	char* arg;
+	int *threadret;
 
 	errorCount = 0;
 
@@ -23,9 +43,9 @@ int main(int argc, char* argv[]) {
 	}
 
 	nb_thread = atoi(argv[1]);
-	nb_file = argc -2;
+	NB_FICHIER_TODO = argc -2;
 
-	if( (nb_thread >= nb_file) || (nb_thread <= 0) )
+	if( (nb_thread >= NB_FICHIER_TODO) || (nb_thread <= 0) )
 	{
 		printf("Wrong number of threads asked\n");
 		return EXIT_FAILURE;
@@ -35,32 +55,22 @@ int main(int argc, char* argv[]) {
 
 	for(i = 0; i < (nb_thread); i++) 
 	{
-		arg = argv[i+2];
-		if(pthread_create(&tids[i], NULL, upper, arg) != 0) {
+		if(pthread_create(&tids[i], NULL, upperDeleg, argv) != 0) {
 			perror("error p_create");
 			return EXIT_FAILURE;
 		}
 	}
 
-	for(i = 0; i < nb_file; i++) 
+	for(i = 0; i < nb_thread; i++) 
 	{
-		if(pthread_join(tids[i%nb_thread], NULL) != 0) 
-		{
-			printf("error p_join on file %s", argv[i+1]);
+		if((pthread_join(tids[i%nb_thread], (void*) &threadret) != 0) || !threadret) {
+			printf("error p_join on file %s\n", argv[i+2]);
 			errorCount++;
-		}
-		else if(i + nb_thread < nb_file)
-		{
-			arg = argv[i+2+nb_thread];
-			if(pthread_create(&tids[i%nb_thread], NULL, upper, arg) != 0) 
-			{
-				perror("error p_create");
-				return EXIT_FAILURE;
-			}			
 		}
 	}
 
 	free(tids);
+	free(threadret);
 
 	return errorCount;
 
