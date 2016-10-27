@@ -4,10 +4,12 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <fcntl.h>
 #include <string.h>
 
-char * getline(FILE *stream) {
+char * readline(FILE *stream) {
     char * line = malloc(100), * linep = line;
+    char * linen;
     size_t lenmax = 100, len = lenmax;
     int c;
 
@@ -21,7 +23,7 @@ char * getline(FILE *stream) {
 
         if(--len == 0) {
             len = lenmax;
-            char * linen = realloc(linep, lenmax *= 2);
+            linen = realloc(linep, lenmax *= 2);
 
             if(linen == NULL) {
                 free(linep);
@@ -35,6 +37,7 @@ char * getline(FILE *stream) {
             break;
     }
     *line = '\0';
+    printf("%s\n", linep);
     return linep;
 }
 
@@ -59,10 +62,12 @@ int main(int argc, char* argv[]) {
     }
 
     while(1) {
-    	line = getline(stdin);
+    	line = readline(stdin);
+        /*printf("%s\n", line);*/
     	if(strcmp(line, "exit") == 0)
     		break;
     	write(fifofd, line, sizeof(line));
+        free(line);
     }
 
     close(fifofd);
