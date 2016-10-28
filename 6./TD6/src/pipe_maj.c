@@ -9,6 +9,8 @@
 #include <string.h>
 
 #define S_BUF 100
+#define ECRITURE 1
+#define LECTURE 0
 
 int main()
 {
@@ -33,7 +35,7 @@ int main()
 
       if(pid == 0)
       {
-            if(( n = read(tubeDesc[0], buffer, S_BUF)) == -1)
+            if(( n = read(tubeDesc[LECTURE], buffer, S_BUF)) == -1)
             {
                   perror ("read");
                   exit(3);
@@ -50,7 +52,7 @@ int main()
       }
       else
       {
-            if(( n = write(tubeDesc[1], buffer, read(0, buffer, S_BUF))) == -1)
+            if(( n = write(tubeDesc[ECRITURE], buffer, read(0, buffer, S_BUF))) == -1)
             {
                   perror ("write");
                   exit(4);

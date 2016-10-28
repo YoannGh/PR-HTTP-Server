@@ -31,47 +31,52 @@ char * readline(FILE *stream) {
             }
             line = linen + (line - linep);
             linep = linen;
+            printf("%s\n", line);
         }
 
         if((*line++ = c) == '\n')
             break;
     }
     *line = '\0';
-    printf("%s\n", linep);
     return linep;
 }
 
 int main(int argc, char* argv[]) {
 
-	int fifofd;
+	int fifofd_write;
 	char* line;
+    struct stat stat;
 
 	if(argc != 2) {
 		printf("Bad args\n");
 		return EXIT_FAILURE;
 	}
 
-	if(mkfifo(argv[1], 0600) != 0) {
-		perror("error mkfifo\n");
-		return EXIT_FAILURE;
-	}
-
-	if ((fifofd = open(argv[1], O_RDONLY, 0600)) == -1) {
+	if ((fifofd_write = open(argv[1], O_WRONLY)) == -1) {
     	perror("error open fifo\n");
      	return EXIT_FAILURE;
     }
 
-    while(1) {
-    	line = readline(stdin);
-        /*printf("%s\n", line);*/
-    	if(strcmp(line, "exit") == 0)
-    		break;
-    	write(fifofd, line, sizeof(line));
-        free(line);
+    if(fstat(fifofd_write, &stat) == -1) {
+        perror("fstat");
+    }
+    if(S_ISFIFO(stat.st_mode)) {
+        printf("c numinode: %d\n", (int) stat.st_ino);
+        printf("c nblien: %d\n", (int) stat.st_nlink);
     }
 
-    close(fifofd);
-    unlink(argv[1]);
+    while(1) {
+        printf("> ");
+    	line = readline(stdin);
+        /*printf("%s\n", line);*/
+    	if(strcmp(line, "exit\n") == 0)
+    		break;
+    	/*write(fifofd_write, line, strlen(line));*/
+        write(fifofd_write, "hello", 5);
+        /*free(line);*/
+    }
+
+    close(fifofd_write);
 
     return EXIT_SUCCESS;
 }
