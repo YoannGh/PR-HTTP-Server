@@ -45,7 +45,6 @@ int main(int argc, char* argv[]) {
 
 	int fifofd_write;
 	char* line;
-    struct stat stat;
 
 	if(argc != 2) {
 		printf("Bad args\n");
@@ -57,23 +56,14 @@ int main(int argc, char* argv[]) {
      	return EXIT_FAILURE;
     }
 
-    if(fstat(fifofd_write, &stat) == -1) {
-        perror("fstat");
-    }
-    if(S_ISFIFO(stat.st_mode)) {
-        printf("c numinode: %d\n", (int) stat.st_ino);
-        printf("c nblien: %d\n", (int) stat.st_nlink);
-    }
-
     while(1) {
         printf("> ");
     	line = readline(stdin);
         /*printf("%s\n", line);*/
     	if(strcmp(line, "exit\n") == 0)
     		break;
-    	/*write(fifofd_write, line, strlen(line));*/
-        write(fifofd_write, "hello", 5);
-        /*free(line);*/
+    	write(fifofd_write, line, strlen(line));
+        free(line);
     }
 
     close(fifofd_write);
