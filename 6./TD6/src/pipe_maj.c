@@ -1,3 +1,15 @@
+/*
+1 Tube et majuscules
+
+On souhaite écrire un programme qui mette en majuscules les chaînes de caractères entrées par l’utilisateur via le terminal. Ce programme lance 2 processus :
+
+    le processus père créé un tube avec la fonction C pipe et un processus fils, récupère les messages utilisateur en les lisant sur l’entrée standard, puis les transmet à son fils ;
+    le processus fils lit les messages de son père, les transcrit en majuscules avec la fonction C toupper, puis les écrit sur la sortie standard.
+
+Exemple d'appel :
+echo abcd.ext | $PWD/bin/pipe_maj
+*/
+
 #define _POSIX_SOURCE 1
 #include <unistd.h>
 #include <sys/types.h>

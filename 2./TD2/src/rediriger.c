@@ -1,3 +1,11 @@
+/*
+4 Redirection
+
+En utlisant la fonction dup2, écrire une fonction Rediriger_stdout redirigeant la sortie standard vers un fichier donné en argument. On considère que le fichier n’existe pas. Ecrire ensuite une deuxième fonction Restaurer_stdout qui restaure la sortie vers le terminal. Ecrire enfin une fonction main prenant en argument un nom de fichier, et qui appelle 3 fois la fonction printf, les deux premiers appels encadrant un appel à Rediriger_stdout sur le fichier indiqué, et les deux derniers un appel à Restaurer_stdout. Qu’observez-vous dans le flux de sortie et le fichier ?
+Exemple d'appel :
+$PWD/bin/rediriger trace.txt
+*/
+
 #define _XOPEN_SOURCE 700
 #include <stdio.h>
 #include <stdlib.h>

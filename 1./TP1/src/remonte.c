@@ -1,3 +1,15 @@
+/*
+2 Remontée de valeurs
+
+Ecrire en C un programme prenant en argument un nombre n et un nom de fichier. Le processus principal doit créer n processus fils, à l’aide de fork. Chaque processus fils produit une valeur aléatoire qu’il insère dans le fichier donné en 2e argument, à destination du processus principal. La valeur aléatoire est calculée par :
+
+(int) (10*(float)rand()/ RAND_MAX)
+
+De son côté, le processus principal doit attendre la terminaison de tous ses fils, puis extraire toutes les valeurs du fichier pour ensuite les additionner et enfin afficher la somme résultante. On pourra utiliser waitpid appliqué aux résultat de fork pour attendre les terminaisons, puis utiliser lseek. On contrôlera les cas d’erreurs comme à l’exercice précédent.
+Exemple d'appel :
+$PWD/bin/remonte 8 aleas
+*/
+
 #define _XOPEN_SOURCE 700
 #include <stdio.h>
 #include <stdlib.h>

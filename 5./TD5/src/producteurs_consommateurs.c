@@ -1,3 +1,11 @@
+/*
+4 Des producteurs et des consommateurs
+
+Reprenez l’exercice précédent en faisant échanger plusieurs producteurs et plusieurs consommateurs de façon concurrente, toujours à travers une seule pile. Votre programme prendra en argument deux nombres : le nombre de producteurs suivi du nombre de consommateurs.
+Exemple d'appel :
+echo "123456789" | bin/producteurs_consommateurs 5 3
+*/
+
 #define _XOPEN_SOURCE 700
 #include <stdio.h>
 #include <stdlib.h>

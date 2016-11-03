@@ -1,3 +1,11 @@
+/*
+2 Détachement à la création
+
+Modifier encore une fois pour que les threads soient dans l’état détaché lors de leur création, grâce à la fonction pthread_attr_setdetachstate.
+Exemple d'appel :
+$PWD/bin/thread_setdetach 10
+*/
+
 #define _XOPEN_SOURCE 700
 #include <stdio.h>
 #include <stdlib.h>

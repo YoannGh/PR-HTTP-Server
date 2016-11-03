@@ -1,3 +1,13 @@
+/*
+1 Fonction grep étendue
+
+On considère le fichier liste-rep.c founi en annexe qui liste le contenu d’un répertoire. Ecrire une variante de ce programme qui cherche la chaîne donnée en premier argument dans tous les fichiers du répertoire donné en 2e argument. Il affiche le nom de chaque fichier qui contient la chaîne de caractères recherchée, ou "Aucun fichier valide" si la chaîne n’est présente dans aucun des fichiers du répertoire.
+
+N.B : Vous pouvez utiliser la fonction strstr de la bibliothèque string.h pour trouver si une chaîne de caractères est présente dans une autre.
+Exemple d'appel :
+bin/extended-grep if src
+*/
+
 #define _XOPEN_SOURCE 700
 #include <stdio.h>
 #include <stdlib.h>

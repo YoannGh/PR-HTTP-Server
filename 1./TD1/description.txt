@@ -1,3 +1,31 @@
+3 Description des processus
+
+On appelle à présent la fonction nfork avec la fonction main ci-dessous :
+
+#define _XOPEN_SOURCE 700
+#include <stdio.h>
+#include <stdlib.h>
+
+int nfork(int nb_fils);
+
+int main (void) {
+  int p;
+  int i=1; int N = 3;
+  do {
+    p = nfork (i) ;
+    if (p != 0 )
+      printf ("%d \n",p); 
+  } while ((p ==0) && (++i<=N));
+  printf ("FIN\n");
+  return EXIT_SUCCESS;
+}
+
+On rappelle que l’instruction ++i<N incrémente d’abord la variable i et ne compare qu’ensuite.
+
+Si on suppose que fork n’échoue jamais, combien des processus sont-ils créés, processus principal inclus ? Représentez l’arborescence de processus créés, en spécifiant les affichages de chaque processus. On pourra s’aider de la fonction getpid.
+
+--------------------------------------------------------------------
+
 Processus principal inclus, il y a 10 processus créés.
 
 

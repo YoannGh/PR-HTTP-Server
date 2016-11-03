@@ -1,3 +1,11 @@
+/*
+5 Attente de processus
+
+Ecrire un programme qui crée deux processus fils fils1 et fils2. Chaque fils crée un fils, fils1.1 et fils2.1 respectivement. Ces 4 processus ne font qu’imprimer leur PID et PPID. Dans le cas du processus fils2, il imprime aussi le PID de son frère aîné fils1. Les processus n’ayant pas de fils se terminent aussitôt, mais un processus qui a des fils (y compris le processus principal) ne se termine qu’après ceux-ci. On utilisera la fonction wait pour réaliser cette attente, à l’exclusion de toute autre méthode (fichiers, fonction sleep etc).
+Exemple d'appel :
+$PWD/bin/mon_frere
+*/
+
 #define _XOPEN_SOURCE 700
 #include <sys/types.h>
 #include <unistd.h>

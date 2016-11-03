@@ -1,3 +1,19 @@
+/*
+3 Un producteur et un consommateur
+
+Nous voulons faire communiquer une thread Producteur et une thread Consommateur en utilisant une pile de taille fixe (un tableau de 100 caractères). Les valeurs empilées sont des caractères. La thread Producteur utilise la fonction Push() pour empiler un caractère au sommet de la pile et la thread Consommateur utilise la fonction Pop() pour désempiler une valeur du sommet de la pile. Une variable globale stack_size contrôle le sommet de la pile.
+
+Programmez les fonctions Push() et Pop() décrites ci-dessus pour faire communiquer les threads Producteur et Consommateur, le corps de ces deux fonctions reposant respectivement sur les deux séquences de code définies par les deux macros suivantes, fournies dans le fichier .h en annexe :
+
+#define PRODUCTEUR int c;  while((c = getchar()) != EOF){ push(c); }
+
+#define CONSOMMATEUR while(1) { putchar(pop()); fflush(stdout); }
+
+Ecrire ensuite le programme main utilisant ces deux fonctions.
+Exemple d'appel :
+echo "123456789" | bin/producteur_consommateur
+*/
+
 #define _XOPEN_SOURCE 700
 #include <stdio.h>
 #include <stdlib.h>

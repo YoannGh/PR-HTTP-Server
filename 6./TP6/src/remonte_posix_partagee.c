@@ -1,3 +1,9 @@
+/*
+Définir les macros nécessaires au canevas fourni pour que les valeurs soient remontées au processus principal via un segment de mémoire partagée,disponible en POSIX à l’aide des fonctions C shm_open, shm_unlink, mmap, munmap et ftruncate.
+Exemple d'appel :
+$PWD/bin/remonte_posix_partagee 4
+*/
+
 #define _XOPEN_SOURCE 700
 #include <stdio.h>
 #include <stdlib.h>

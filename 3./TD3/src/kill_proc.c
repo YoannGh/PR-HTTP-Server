@@ -1,3 +1,13 @@
+/*
+2 La fonction kill
+
+On reprend l’exercice précédent, mais on s’interdit d’utiliser les fonctions wait et assimilées, ni bien sûr le signal SIGCHLD. A la place on utilisera les fonctions kill, sigaction et sigsuspend. Comment résoudre alors le problème en s’assurant qu’aucun processus ne se termine avant que tous les autres ne soient créées ?
+
+Remarque : on ne demande plus de récupérer la valeur aléatoire ici.
+Exemple d'appel :
+$PWD/bin/kill_proc 10
+*/
+
 #define _XOPEN_SOURCE 700
 #include <sys/types.h>
 #include <sys/wait.h>

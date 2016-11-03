@@ -1,3 +1,11 @@
+/*
+3 Les Signaux SIGSTOP, SIGCONT, SIGCHLD
+
+On reprend encore le même exercice, mais nous voulons que tous les processus, à l’exception du processus initial, soient suspendus par un signal SIGSTOP. Lorsqu’ils le sont tous, le processus initial affiche : Tous les descendants sont suspendus. L’exécution de ces processus doit alors reprendre pour que ceux-ci se terminent. De nouveau, il faut répondre sans utiliser les fonctions de la famille wait.
+Exemple d'appel :
+$PWD/bin/stop_and_go 10
+*/
+
 #define _XOPEN_SOURCE 700
 #include <sys/types.h>
 #include <sys/wait.h>

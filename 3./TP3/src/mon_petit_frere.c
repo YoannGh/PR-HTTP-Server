@@ -1,3 +1,11 @@
+/*
+3 Attente ordonnée de processus
+
+On reprend l’énoncé de l’exercice Attente de processus où un processus crée deux fils créant chacun un processus. On ajoute la contrainte que le processus fils 1 ne peut se terminer qu’après les affichages réalisés par son frère fils 2 et son fils fils 1.1. Comme auparavant, les processus ne se terminent qu’après envoi des messages de leur fils respectifs. Trouvez une solution n’utilisant que les signaux SIGUSR1 et SIGUSR2, à l’exclusion de tout autre moyen (Wait, Sleep etc).
+Exemple d'appel :
+$PWD/bin/mon_petit_frere
+*/
+
 #define _XOPEN_SOURCE 700
 #include <sys/types.h>
 #include <unistd.h>

@@ -1,3 +1,11 @@
+/*
+3 Inverseur de contenu en utilisant pread
+
+Même exercice que précédemment, mais en utilisant pread à la place de lseek.
+Exemple d'appel :
+bin/inverser-pread src/inverser-pread.c
+*/
+
 #define _XOPEN_SOURCE 700
 #include <stdio.h>
 #include <stdlib.h>

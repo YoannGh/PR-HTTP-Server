@@ -1,3 +1,11 @@
+/*
+3 Réveil de threads
+
+Modifier le programme précédent pour que la valeur finale soit affichée non plus par le programme principal mais par une nouvelle thread créée au départ. Celle-ci, après sa création, doit se bloquer en attendant que la somme de toutes les valeurs aléatoires soit complétée. La dernière thread à ajouter sa valeur aléatoire utilisera pthread_cond_signal pour signifier à la première qu’elle peut afficher la valeur de la globale. On utilisera une variable statique dans la fonction appelée à la création de la thread pour compter le nombre de ses appels, et repérer ainsi le dernier appel (le problème peut se résoudre sans d’autres variables globales que celle additionnant les valeurs aléatoires).
+Exemple d'appel :
+$PWD/bin/thread_wait 10
+*/
+
 #define _XOPEN_SOURCE 700
 #include <stdio.h>
 #include <stdlib.h>

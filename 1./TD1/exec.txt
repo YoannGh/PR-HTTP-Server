@@ -1,3 +1,39 @@
+4 La fonction exec et ses variantes
+
+On considère le programme ci-dessous :
+ 1: int main(int argc, char **argv) {
+ 2:     pid_t pid;
+ 3:      int  j=0; int i = 0;
+ 4:      while (i < 2) {
+ 5:         i ++;
+ 6:         if ((pid = fork ()) == -1) {
+ 7:            perror ("fork");
+ 8:            return errno;
+ 9:         }
+10:         else if (pid == 0) j=i;
+11:     }
+12:     if (j == 2) {
+13:         sleep (2);
+14:         printf ("sans fils \n");
+15:     }
+16:     else {
+17:       printf ("%d fils \n », (i-j) );
+18:       while (j < i) {
+19:            j++;
+20:            wait (NULL);
+21:       }
+22:     }
+23:     return EXIT_SUCCESS;
+24: }  
+
+Combien de processus sont-ils créés, processus principal inclus ? Faites l’arborescence des processus en montrant les affichages de chaque processus.
+
+Si, au lieu d’appeler la fonction C sleep à la ligne 13, on appelle la commande Unix sleep qui se trouve dans le répertoire /bin à l’aide de la fonction execl, le nombre de processus créés et l’affichage changent-ils ?
+
+Même question en utilisant execv.
+
+------------------------------------------------------------------------
+
 Processus principal inclus, il y a 4 processus créés.
 
 

@@ -1,3 +1,17 @@
+/*
+1 Recopie de fichier
+
+Ecrire en C un programme qui prend en argument deux noms de fichier et recopie intégralement le contenu du premier dans le second, en utilisant les fonctions POSIX open, read et write. On donnera au deuxième fichier les droits en lecture et écriture pour soi (à l’aide du 3e argument de open ou en appelant la fonction chmod). On veillera à dénoncer (avec la fonction perror) les cas d’erreur suivants :
+
+    la ligne de commande ne contient pas exactement 2 noms ;
+    le premier nom ne désigne pas un fichier régulier et accessible en lecture ;
+    le second ne peut être créé (répertoire inaccessible en écriture, ou entrée déjà existante dedans).
+
+En cas de réussiste, le programme 0 sinon il retourne la valeur de errno.
+Exemple d'appel :
+$PWD/bin/mycp src/mycp.c cp.c
+*/
+
 #define _XOPEN_SOURCE 700
 #include <stdio.h>
 #include <stdlib.h>

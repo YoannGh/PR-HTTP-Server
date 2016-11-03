@@ -1,3 +1,28 @@
+/*
+3 Synchronisation par broadcast
+
+Une barrière est un mécanisme de synchronisation. Elle permet à N threads de prendre rendez-vous en un point donné de leur exécution. Dès que l’une d’entre elles atteint la barrière, elle reste bloquée jusqu’à ce que toutes les autres y arrivent. Lorsque toutes sont arrivées, chacune peut alors reprendre son exécution.
+
+Ecrire une fonction, qu’on nommera wait_barrier prenant en argument un entier N, permettant à N threads de se synchroniser sur une barrière. Testez votre programme avec la thread suivante :
+void* thread_func (void *arg) {
+   printf ("avant barriere\n");
+   wait_barrier (((int *)args)[0]);
+   printf ("après barriere\n");
+   pthread_exit ( NULL);
+}
+
+En exécutant votre programme avec 2 threads, il devra afficher :
+
+avant barrière
+avant barrière
+après barrière
+après barrière
+
+En d’autres termes, on veut que tous les messages « avant barrière » soient affichés avant les messages « après barrière ».
+Exemple d'appel :
+$PWD/bin/thread_broadcast 10
+*/
+
 #define _XOPEN_SOURCE 700
 #include <stdio.h>
 #include <stdlib.h>

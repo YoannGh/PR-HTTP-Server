@@ -1,3 +1,15 @@
+/*
+1 Chaîne de threads et signaux
+
+On désire créer une chaîne de N threads (la Thread principale crée une Thread, qui à son tour en crée une autre, et ainsi de suite N fois) qui fonctionne de la manière suivante. Au démarrage du programme, la Thread principale masque tous les signaux, démarre la chaîne de création puis attend que toutes les Threads soient créées avant d’afficher "Tous mes descendants sont créés".
+
+Après leur création, toutes les Threads sauf la principale se bloquent en attendant que celle-ci les libère. Parallèlement, la Thread principale se bloque en attente d’un signal SIGINT émis par l’utilisateur avec un CTRL+C. A la délivrance de ce signal, elle se débloque et débloque les autres Threads de la chaîne puis attend enfin que toutes se soient terminées avant d’afficher "Tous mes descendants se sont terminés".
+
+NB : Seule la Thread principale doit pouvoir être interrompue par un signal. On rappelle que chaque Thread gère un masque de signaux qui lui est propre.
+Exemple d'appel :
+bin/signal_thread 4
+*/
+
 #define _XOPEN_SOURCE 700
 #include <stdio.h>
 #include <stdlib.h>
@@ -5,8 +17,6 @@
 #include <sys/types.h>
 #include <pthread.h>
 #include <signal.h>
-
-
 
 pthread_cond_t condAllCreated = PTHREAD_COND_INITIALIZER;
 pthread_cond_t condWaitSignalMain = PTHREAD_COND_INITIALIZER;

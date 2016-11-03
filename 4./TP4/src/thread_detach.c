@@ -1,3 +1,11 @@
+/*
+1 Détachement des threads
+
+En utilisant la fonction pthread_detach, modifier le programme précédent pour que les threads affichant la valeur aléatoire soient détachées après leur création.
+Exemple d'appel :
+$PWD/bin/thread_detach 10
+*/
+
 #define _XOPEN_SOURCE 700
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,3 +1,17 @@
+/*
+3 Remplacement dans un fichier
+
+Ecrire un programme qui reçoit au moins trois arguments :
+
+    un nom de fichier à créer ;
+    un mot quelconque ;
+    une suite de mots quelconques.
+
+Le programme doit créer le fichier, à l’aide de open, et écrire la suite des mots, séparés par un espace, dans le fichier, ainsi que dans le flux de sortie. Ce même fichier est ensuite parcouru en utilisant la fonction read et la lecture s’arrête au premier espace. On remplace alors le mot suivant par le mot donné en deuxième argument. On suppose que le remplaçant et le remplacé sont de même longueur.
+Exemple d'appel :
+$PWD/bin/remplacedansfichier texte toi a moi de jouer
+*/
+
 #define _XOPEN_SOURCE 700
 #include <stdio.h>
 #include <stdlib.h>

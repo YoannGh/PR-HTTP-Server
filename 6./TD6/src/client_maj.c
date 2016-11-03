@@ -1,3 +1,11 @@
+/*
+3 Tube nommé et minuscules
+
+Dans cette partie, il s’agit d’écrire le client qui prend en argument le nom du tube nommé sur la ligne de commande. Il lit les messages tapés par l’utilisateur dans le flux d’entrée, puis les réécrit sur le tube à chaque retour chariot.
+Exemple d'appel :
+$PWD/bin/client_maj minmaj
+*/
+
 #define _XOPEN_SOURCE 700
 #include <stdio.h>
 #include <stdlib.h>

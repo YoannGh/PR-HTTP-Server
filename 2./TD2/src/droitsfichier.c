@@ -1,3 +1,26 @@
+/*
+2 Droits sur un fichier
+
+Ecrire un programme qui permet d’effacer, de renommer ou de changer les droits d’un fichier existant. On utilisera les fonctions unlink, rename et chmod. Le programme reçoit en argument :
+
+    type d’opération :
+        “E” ou “e” pour effacer
+        “R” ou “r” pour renommer
+        “C” ou “c” pour changer les droits
+    nom du fichier
+    nom du fichier à renommer ou nouveaux droits :
+        “R” ou “r” (read-only / lecture seulement)
+        “W” ou “w” (read-write / lecture-ecriture)
+
+Observations :
+
+    Le programme doit vérifier que le deuxième argument n’est pas un répertoire (utiliser la fonction stat).
+    pour le changement de droits en “read-only” n’oubliez pas de donner le droit d’écriture au propriétaire du fichier.
+
+Exemple d'appel :
+$PWD/bin/droitsfichier c makefile W
+*/
+
 #define _XOPEN_SOURCE 700
 #include <stdio.h>
 #include <stdlib.h>

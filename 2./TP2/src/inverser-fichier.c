@@ -1,3 +1,13 @@
+/*
+2 Inverseur de contenu en utilisant lseek
+
+Ecrire un programme qui prend en argument un nom de fichier, le lit caractère par caractère pour l’écrire de manière inversée dans un autre fichier. Votre programme doit impérativement utiliser la fonction lseek pour modifier l’offset lors de la lecture.
+
+Si le premier fichier contient "fichier ok" alors le deuxième devra contenir "ko reihcif" (on ne testera évidemment pas sur un fichier contenant un palindrome comme radar etc).
+Exemple d'appel :
+bin/inverser-fichier src/inverser-fichier.c
+*/
+
 #define _XOPEN_SOURCE 700
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,3 +1,9 @@
+/*
+Ajouter à ce programme l’envoi d’un seul signal de sorte que la taille du fichier soit égale à 8 dans tous les scénarios d’exécution.
+Exemple d'appel :
+$PWD/bin/forkfilemax
+*/
+
 #define _XOPEN_SOURCE 700
 #include <stdio.h>
 #include <stdlib.h>

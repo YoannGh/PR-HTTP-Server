@@ -1,3 +1,15 @@
+/*
+2 Exclusion mutuelle de threads
+
+Modifier le programme de l’exercice précédent pour que chaque thread, au lieu d’afficher son numéro de création, calcule une valeur aléatoire entre 0 et 10 à l’aide de la fonction rand de la façon suivante :
+
+(int) (10*((double)rand())/ RAND_MAX)
+
+Cette valeur aléatoire sera affichée, puis ajoutée à une variable globale, initialisée à zéro par le programme principal. On veillera évidemment à éviter les accès concurrents à cette variable, en utilisant les fonctions de la famille pthread_mutex_lock. Après terminaison de toutes les threads, le programme affiche la valeur finale de cette variable.
+Exemple d'appel :
+$PWD/bin/thread_rand 10
+*/
+
 #define _XOPEN_SOURCE 700
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,3 +1,13 @@
+/*
+2 N fichiers , N-K Threads
+
+On considère maintenant que le nombre de threads créées est inférieur au nombre de fichiers à traiter. Dès qu’une Thread a converti un fichier avec succès, elle doit passer à un autre fichier s’il en reste, et sinon se terminer. Si un fichier pose problème, elle se termine tout de suite en indiquant le fichier fautif au programme principal.
+
+Ecrire un nouveau programme C programmant cette stratégie, le premier argument sur la ligne de commande étant le nombre de Thread permis, les suivants étant les fichiers, en nombre supérieur. Le programme principal doit attendre la fin des Threads, tester leur retour et afficher les fichiers ayant posé problème. On notera qu’il peut y avoir des fichiers non examinés si toutes les Threads ont rencontré un fichier à problème.
+Exemple d'appel :
+bin/thread_uppermax 2 fichier1 fichier2 fichier3
+*/
+
 #define _XOPEN_SOURCE 700
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,3 +1,11 @@
+/*
+1 Liens et fichiers
+
+Ecrivez un programme en C qui lit sur la ligne de commande deux chemins absolus dans l’arboresence Unix, et teste s’il s’agit du même fichier. On utilisera la fonction stat. Testez votre programme sur différents cas, notamment des liens symboliques ou non symboliques.
+Exemple d'appel :
+$PWD/bin/memefichier $PWD/src/memefichier.c $PWD/src/../src/memefichier.c
+*/
+
 #define _XOPEN_SOURCE 700
 #include <stdio.h>
 #include <stdlib.h>

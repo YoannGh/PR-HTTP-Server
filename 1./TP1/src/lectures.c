@@ -1,3 +1,11 @@
+/*
+4 Fonctions POSIX vs. fonctions C
+
+Écrire en C deux fonctions qui lisent caractère par caractère un fichier passé en argument, et qui affichent chaque caractère dès qu’il est lu. Ces fonctions utiliseront 3 processus partageant le même descripteur et agissant à l’identique (l’identité de chaque processus est affichée avec le caractère lu). La première utilisera les standard POSIX open et read, la seconde fopen et fgetc. Vous écrirez un unique programme qui, selon que son premier argument est -p ou -C appliquera l’une ou l’autre de ces fonctions sur le fichier donné en 2e argument. Vous contrôlerez les cas d’erreur comme précédent. Quelle différence observez-vous entre les deux modes d’appels ?
+Exemple d'appel :
+$PWD/bin/lectures -p src/lectures.c; $PWD/bin/lectures -C src/lectures.c
+*/
+
 #define _XOPEN_SOURCE 700
 #include <stdio.h>
 #include <stdlib.h>
