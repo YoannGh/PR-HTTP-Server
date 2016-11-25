@@ -18,7 +18,7 @@ HC=
 
 .SUFFIXES:
 .PHONY: all clean test test-remonte_udp test-env_serveur test-env_client test-recvfile test-sendfile
-all: $(BIN)remonte_udp $(BIN)env_serveur $(BIN)env_client $(BIN)recvfile $(BIN)sendfile 
+all: $(BIN)remonte_udp $(BIN)env_client $(BIN)env_serveur $(BIN)recvfile $(BIN)sendfile 
 
 test: test-remonte_udp test-env_serveur test-env_client test-recvfile test-sendfile
 
