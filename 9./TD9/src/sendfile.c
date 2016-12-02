@@ -17,7 +17,6 @@
 
 int create_connection(char *host, int port) {
     struct sockaddr_in server_addr;
-    struct hostent *server;
     struct addrinfo hints, *res;
     int sock;
 
@@ -103,6 +102,10 @@ int main(int argc, char* argv[]) {
         printf("errno: %d\n", errno);
         return EXIT_FAILURE;
     }
+
+    puts("Avant sleep");
+    sleep(10);
+    puts("Apres sleep");
 
     puts("sent filename");
 
