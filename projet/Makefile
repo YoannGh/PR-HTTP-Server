@@ -3,7 +3,7 @@
 
 
 # Documentation: http://www.gnu.org/software/make/manual/make.html
-CC =gcc -pthread 
+CC =gcc -pthread -DDEBUG
 LDFLAGS =
 CFLAGS =-W -Wall -ansi -pedantic -Iinclude -std=c11 
 
@@ -19,6 +19,7 @@ HC=
 .SUFFIXES:
 .PHONY: all clean
 all: $(BIN)serveur 
+test-mime_parser: $(BIN)mime_parser
 
 # test: test-ftp_multi_serveur test-journal_serveur
 
