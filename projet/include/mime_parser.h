@@ -1,4 +1,5 @@
-#define MIME_PATH "/etc/mimes.types"
+#define MIME_PATH "/etc/mime.types"
+#define ERR_BUFFER_SIZE 1024
 #define MIME_CACHE_SIZE 16
 
 typedef struct mime_cache_entry {
