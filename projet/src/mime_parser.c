@@ -97,8 +97,7 @@ char* parse_file_ext(mime_parser* mp, char* file_ext) {
 	}
 
 #ifdef DEBUG
-	for (i = 0; match[i].rm_so != -1 && i < (int) maxGroups; i++)
-   	{
+	for (i = 0; match[i].rm_so != -1 && i < (int) maxGroups; i++) {
     	len = match[i].rm_eo - match[i].rm_so;
     	memcpy(result, mp->buffer + match[i].rm_so, len);
     	result[len] = '\0';
