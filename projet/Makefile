@@ -43,4 +43,4 @@ $(INCLUDE)%.h:
 	@if [ -d $(INCLUDE) ]; then : ; else mkdir $(INCLUDE); fi
 
 clean: 
-	rm $(OBJ)*.o $(BIN)*
+	rm -f $(OBJ)*.o $(BIN)*
