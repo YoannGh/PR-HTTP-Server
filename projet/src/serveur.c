@@ -18,6 +18,10 @@
 
 
 #define BUFFER_SIZE 1024
+#define KRED  "\x1B[31m"
+#define KGRN  "\x1B[32m"
+#define KRESET "\x1B[0m"
+
 
 typedef struct request {
 	int socket;
@@ -42,7 +46,7 @@ void init_request(request *req, int socket)
 	req->return_code = 0;
 	req->data_size = 0;
 
-	if((n = read(socket, buffer, BUFFER_SIZE)) < 0) {
+	if((n = recv(socket, buffer, BUFFER_SIZE, 0)) < 0) {
 		perror("readSocket");
 	}
 
@@ -77,6 +81,14 @@ void display_request(request *req)
 	printf("Code: %d\n", req->return_code);
 	printf("Data sent : %do\n", req->data_size);
 	puts("");
+}
+
+void cleanResponseDisplay(int id, request *req, char *path)
+{
+	if (req->return_code == 200)
+		printf("ID %d processed request \"%s\" | Size: %d, answer: %d [" KGRN "OK" KRESET"]\n", id, path, req->data_size, req->return_code);
+	else
+		printf("ID %d processed request \"%s\" | Size: %d, answer: %d [" KRED "KO" KRESET"]\n", id, path, req->data_size, req->return_code);
 }
 
 
@@ -151,6 +163,7 @@ void send_error403(request *req)
 	write(req->socket, err403, strlen(err403));
 }
 
+
 char* getPathRequested(const char *request)
 {
 	char* path;
@@ -184,6 +197,7 @@ void reply(request *req)
 			send_error403(req);
 		else
 			send_error404(req);
+		cleanResponseDisplay(getpid(), req, path);
 		return;
 	}
 
@@ -207,6 +221,7 @@ void reply(request *req)
     	write(req->socket, buffer, n);
 	}
 
+	cleanResponseDisplay(getpid(), req, path);
 	end:
 	close(fd);
 	free(path);
@@ -218,9 +233,9 @@ void processSocket(int sock)
 	request *req;
 
 	req = malloc(sizeof(request));
+
 	init_request(req, sock);
 	reply(req);
-	display_request(req);
 
 	free_request(req);
 	free(req);
@@ -250,6 +265,9 @@ int main(int argc, char* argv[]) {
     	FD_SET(sockTab[i-1], &mselect);
     }
 
+    //Entrée standard pour fermer le serv
+    FD_SET(0,&mselect);
+
     while(1) {
 
     	puts("awaiting client");
@@ -259,6 +277,8 @@ int main(int argc, char* argv[]) {
 			perror("select");
 			return errno;
 		}
+    	if(FD_ISSET(0, &mselect))
+			break;
 
     	puts("client connected");
     	for(i=0; i<argc-1; ++i)
@@ -269,8 +289,11 @@ int main(int argc, char* argv[]) {
 					perror("accept");
 					return errno;
     			}
+
+
     			processSocket(sockclient);
     			shutdown(sockclient, 2);
+    			printf("IP address is: %s\n", inet_ntoa(exp.sin_addr));
 			}
     	}
     	
@@ -279,10 +302,16 @@ int main(int argc, char* argv[]) {
 	    {
 	    	FD_SET(sockTab[i-1], &mselect);
 	    }
+    	FD_SET(0,&mselect);
     }
 
+    puts("Closing http server...");
     for(i=0; i<argc-1; ++i)
+    {
+    	shutdown(sockTab[i], 2);
     	close(sockTab[i]);
+    }
+
 
     return EXIT_SUCCESS;
 }
