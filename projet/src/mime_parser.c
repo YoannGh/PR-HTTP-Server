@@ -26,7 +26,7 @@ int mime_parser_init(mime_parser* mp) {
 #ifdef DEBUG
 		perror("error opening mimes.types");
 #endif
-      	return errno;
+		return errno;
     }
 
     mp->buffer = (char *) malloc(st_mime.st_size * sizeof(char));
@@ -36,19 +36,24 @@ int mime_parser_init(mime_parser* mp) {
 		perror("error reading mimes.types");
 #endif
 		free(mp->buffer);
-      	return errno;
+		return errno;
     }
 
-    mp->cache = (mime_cache_entry *) malloc(sizeof(mime_cache_entry) * MIME_CACHE_SIZE); 
-    mp->cache_index = 0;
+#ifdef DEBUG
+	puts("MIME parser initialized");
+#endif
 
-    return 0;
+	return 0;
 }
 
 int mime_parser_destroy(mime_parser* mp) {
+	
 	free(mp->buffer);
-	free(mp->cache);
 	close(mp->fd);
+
+#ifdef DEBUG
+	puts("MIME parser destroyed");
+#endif
 	return 0;
 }
 
@@ -98,10 +103,10 @@ char* parse_file_ext(mime_parser* mp, char* file_ext) {
 
 #ifdef DEBUG
 	for (i = 0; match[i].rm_so != -1 && i < (int) maxGroups; i++) {
-    	len = match[i].rm_eo - match[i].rm_so;
-    	memcpy(result, mp->buffer + match[i].rm_so, len);
-    	result[len] = '\0';
-    	printf("num %d: '%s'\n", i, result);
+		len = match[i].rm_eo - match[i].rm_so;
+		memcpy(result, mp->buffer + match[i].rm_so, len);
+		result[len] = '\0';
+		printf("num %d: '%s'\n", i, result);
    	}
 #endif
 

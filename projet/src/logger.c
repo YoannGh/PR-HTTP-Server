@@ -17,17 +17,27 @@ int logger_init(logger* log) {
 #ifdef DEBUG
 		perror("error opening log file");
 #endif
-      	return errno;
+		return errno;
     }
 
-    log->mutex = (pthread_mutex_t) PTHREAD_MUTEX_INITIALIZER;
+    /* log->mutex = (pthread_mutex_t) PTHREAD_MUTEX_INITIALIZER; */
+	pthread_mutex_init(&log->mutex, NULL);
 
-    return 0;
+#ifdef DEBUG
+	puts("Logger initialized");
+#endif
+
+	return 0;
 }
 
 int logger_destroy(logger* log) {
 	close(log->fd);
 	pthread_mutex_destroy(&log->mutex);
+
+#ifdef DEBUG
+	puts("Logger destroyed");
+#endif
+
 	return 0;
 }
 
@@ -42,7 +52,7 @@ void log_request(logger* log, struct in_addr caddress, time_t time, pid_t spid, 
 
 	if(inet_ntop(AF_INET, &caddress, ip, INET_ADDRSTRLEN) == NULL) { /* thread safe contrairement à inet_ntoa() */
 #ifdef DEBUG
-		puts("in_addr to string failed");
+	puts("in_addr to string failed");
 #endif
 	}
 
