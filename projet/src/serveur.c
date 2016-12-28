@@ -95,7 +95,8 @@ void cleanResponseDisplay(int id, request *req, char *path)
 
 int init_server(int port, int maxclient) {
 	struct sockaddr_in sin;
-	int sock;
+	int sock, true;
+	true = 1;
 
 	if((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 		perror("socket");
@@ -106,6 +107,9 @@ int init_server(int port, int maxclient) {
 	sin.sin_addr.s_addr = htonl(INADDR_ANY);
 	sin.sin_port = htons(port);
 	sin.sin_family = AF_INET;
+
+	//Changement des options de la socket afin de pouvoir la fermer instantanément
+	setsockopt(sock,SOL_SOCKET,SO_REUSEADDR,&true,sizeof(int));
 
 	if(bind(sock, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
 		perror("bind");
@@ -125,7 +129,50 @@ char *get_filename_ext(const char *filename) {
     return dot + 1;
 }
 
+void printAcceptError(void)
+{
+	switch(errno)
+	{
+		case EAGAIN: 
+	       puts("EAGAIN/EWOULDBLOCK"); break;
 
+		case EBADF:
+		       puts("EBADF"); break;
+
+		case EFAULT:
+		       puts("EFAULT"); break;
+
+		case EINTR:
+		       puts("EINTR"); break;
+
+		case EINVAL:
+		       puts("EINVAL"); break;
+
+		case EMFILE:
+		       puts("EMFILE"); break;
+
+		case ENFILE:
+		       puts("ENFILE"); break;
+
+		case ENOBUFS: case ENOMEM:
+		       puts("ENOBUFS"); break;
+
+		case ENOTSOCK:
+		       puts("ENOTSOCK"); break;
+
+		case EOPNOTSUPP:
+		       puts("EOPNOTSUPP"); break;
+
+		case EPROTO:
+		       puts("EPROTO"); break;
+
+		case EPERM:
+		       puts("EPERM"); break;
+
+		default:
+		       puts("WTF");
+	}
+}
 
 void send_error404(request *req)
 {
@@ -244,8 +291,8 @@ void processSocket(int sock)
 int main(int argc, char* argv[]) {
 
 	struct sockaddr_in exp;
-	int sockclient, i;
-	socklen_t fromlen;
+	int sockclient, i, p;
+	socklen_t fromlen = sizeof exp;
 	int* sockTab;
 	fd_set mselect;
 
@@ -287,18 +334,31 @@ int main(int argc, char* argv[]) {
     		{
     			if((sockclient = accept(sockTab[i], (struct sockaddr *)&exp, &fromlen)) < 0) {
 					perror("accept");
+					printAcceptError();
 					return errno;
     			}
 
+			    if ((p = fork ()) == -1) 
+			    {
+			  		perror("fork");
+					return errno;
+			    }
 
-    			processSocket(sockclient);
-    			shutdown(sockclient, 2);
-    			printf("IP address is: %s\n", inet_ntoa(exp.sin_addr));
+    			if(p == 0)
+    			{
+    				char str[INET_ADDRSTRLEN];
+					inet_ntop( AF_INET, &exp.sin_addr, str, INET_ADDRSTRLEN );
+					printf("%s\n", str);
+					processSocket(sockclient);
+					shutdown(sockclient, 2);
+					close(sockclient);
+					return EXIT_SUCCESS;
+    			}
 			}
     	}
     	
-    	FD_ZERO(&mselect);
-        for(i=1; i<argc; ++i)
+		FD_ZERO(&mselect);
+		for(i=1; i<argc; ++i)
 	    {
 	    	FD_SET(sockTab[i-1], &mselect);
 	    }
