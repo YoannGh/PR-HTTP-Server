@@ -13,14 +13,22 @@ OBJ=$(DIR)/obj/
 INCLUDE=$(DIR)/include/
 LIB=$(DIR)/lib/
 SRC=$(DIR)/src/
+TEST=$(DIR)/test/
 
 HC=
 
 .SUFFIXES:
-.PHONY: all clean
+.PHONY: all clean test
 all: $(BIN)serveur 
-test-mime_parser: $(BIN)mime_parser
-test-logger: $(BIN)logger
+
+test: $(TEST)test-mime_parser $(TEST)test-logger
+
+$(TEST)test-mime_parser: $(OBJ)mime_parser.o
+	@if [ -d $(TEST) ]; then : ; else mkdir $(TEST); fi
+	$(CC) -o $@ $^ $(LDFLAGS)
+$(TEST)test-logger: $(OBJ)util.o $(OBJ)logger.o
+	@if [ -d $(TEST) ]; then : ; else mkdir $(TEST); fi
+	$(CC) -o $@ $^ $(LDFLAGS)
 
 # test: test-ftp_multi_serveur test-journal_serveur
 
@@ -43,4 +51,4 @@ $(INCLUDE)%.h:
 	@if [ -d $(INCLUDE) ]; then : ; else mkdir $(INCLUDE); fi
 
 clean: 
-	rm $(OBJ)*.o $(BIN)*
+	rm $(OBJ)*.o $(BIN)* $(TEST)*
