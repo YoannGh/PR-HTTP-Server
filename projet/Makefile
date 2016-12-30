@@ -19,7 +19,7 @@ HC=
 
 .SUFFIXES:
 .PHONY: all clean test
-all: $(BIN)serveur 
+all: $(BIN)serveur $(BIN)client
 
 test: $(TEST)test-mime_parser $(TEST)test-logger
 
@@ -41,6 +41,9 @@ $(TEST)test-logger: $(OBJ)util.o $(OBJ)logger.o
 
 $(BIN)%: $(OBJ)%.o
 	@if [ -d $(BIN) ]; then : ; else mkdir $(BIN); fi
+	$(CC) -o $@ $^ $(LDFLAGS)
+
+$(BIN)client: $(OBJ)client.o $(OBJ)http_request.o $(OBJ)mime_parser.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 $(OBJ)%.o: $(SRC)%.c $(HC)

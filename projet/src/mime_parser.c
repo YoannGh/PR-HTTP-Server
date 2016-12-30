@@ -120,7 +120,7 @@ char* parse_file_ext(mime_parser* mp, char* file_ext) {
 	return mime_type_str;
 
 }
-
+/*
 int main(int argc, char* argv[]) {
 	mime_parser mp;
 	char * mime_type_str;
@@ -139,4 +139,4 @@ int main(int argc, char* argv[]) {
 
 	return 0;
 }
-
+*/
