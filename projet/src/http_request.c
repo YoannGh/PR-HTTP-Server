@@ -151,15 +151,13 @@ void send_200(request *req, int fd, char *fileExt)
 	int n;
 	char buffer[BUFFER_SIZE];
 
-	mime_parser mp;
+	mime_parser* mp;
 	char *mime_txt, *res;
 	char *header = 
 	  "HTTP/1.1 200 OK\n"
       "Content-type: ";
 
-	mime_parser_init(&mp);
-	mime_txt = parse_file_ext(&mp, fileExt);
-	mime_parser_destroy(&mp);
+	mp = req->client->server->parser;
 
 	//+3 pour \n,\n et \0
     res = calloc(1, strlen(header) + strlen(mime_txt) + 3);

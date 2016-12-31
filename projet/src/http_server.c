@@ -32,6 +32,8 @@ http_server_init(http_server* server, int numPort, int nbMaxClient, int antiDOS)
 	
 	server->log = (logger *) malloc(sizeof(logger));
 	logger_init(server->log);
+	server->parser = (mime_parser *) malloc(sizeof(mime_parser));
+	mime_parser_init(server->parser);
 	server->numPort = numPort;
 	server->nbMaxClient = nbMaxClient;
 	server->antiDOS = antiDOS;
@@ -49,6 +51,8 @@ http_server_destroy(http_server* server) {
 	
 	logger_destroy(server->log);
 	free(server->log);
+	mime_parser_destroy(server->parser);
+	free(server->parser);
 	pthread_mutex_destroy(&server->mutex_nbClient);
 	pthread_cond_destroy(&server->cond_maxClient);
 
@@ -60,9 +64,11 @@ http_server_destroy(http_server* server) {
 http_server_run_loop(http_server* server) {
 
 	struct sockaddr_in exp;
+	char ip[INET_ADDRSTRLEN];
 	int socket_server, socket_client;
 	socklen_t fromlen;
 	client* client;
+	pthread_t thread;
 
 	if ((socket_server = init_server(server->numPort, server->nbMaxClient)) < 0) {
 #ifdef DEBUG
@@ -86,13 +92,22 @@ http_server_run_loop(http_server* server) {
 		puts("New client connected!");
 #endif    	
 
-    	/* TODO: if IP address exp is blacklisted -> do nothing */
+    	/* TODO: if IP address exp is blacklisted -> do nothing (pour chaque requete donc pas ici en faite) */
 
-    	/* TODO: accept client
-			malloc new struct client
-			init client
-			pthread_create with client struct as argument
-    	*/
+		if(inet_ntop(AF_INET, ((struct sockaddr_in*)&exp)->sin_addr, ip, INET_ADDRSTRLEN) == NULL) { /* thread safe contrairement à inet_ntoa() */
+#ifdef DEBUG
+			puts("in_addr to string failed");
+#endif
+		}
+
+		client = (client *) malloc(sizeof(client)); /* client must free itself in its thread */
+		client_init(client, server, socket_client, ip);
+		if(pthread_create(&thread, NULL, client_process_socket, (void*) client) != 0) {
+			perror("Creating client thread");
+			/* Error: Do what? */
+		}
+		pthread_detach(thread);
+
 
     	if (pthread_mutex_lock(&server->mutex_nbClient) < 0) {
 			perror("lock mutex nbClient");

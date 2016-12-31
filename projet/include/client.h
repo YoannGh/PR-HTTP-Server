@@ -4,12 +4,14 @@
 #include <netdb.h>
 
 typedef struct client {
+	http_server* server;
+	/*struct sockaddr_in* client_addr;*/
 	int socket;
-	char ip[INET_ADDRSTRLEN + 1];
+	char ip[INET_ADDRSTRLEN];
 
 } client;
 
-void client_init(client* client, int socket, char ip[INET_ADDRSTRLEN]);
+void client_init(client* client, http_server* server, int socket, char ip[INET_ADDRSTRLEN]);
 
 void client_process_socket(client* client);
 

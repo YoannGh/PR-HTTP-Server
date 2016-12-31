@@ -12,7 +12,7 @@ typedef struct request {
 	pid_t thread_id;
 	unsigned short return_code;
 	unsigned int data_size; 
-	sem_t* sem_can_send;
+	sem_t* sem_prev_req_send;
 	sem_t* sem_reply_done;
 } request;
 
