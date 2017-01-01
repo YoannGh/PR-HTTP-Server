@@ -13,14 +13,41 @@ OBJ=$(DIR)/obj/
 INCLUDE=$(DIR)/include/
 LIB=$(DIR)/lib/
 SRC=$(DIR)/src/
+TEST=$(DIR)/test/
 
-HC=
+SOURCES = 	$(SRC)client.c\
+	  		$(SRC)http_request.c \
+	  		$(SRC)http_server.c \
+	  		$(SRC)logger.c \
+	  		$(SRC)main.c \
+	  		$(SRC)mime_parser.c \
+	  		$(SRC)util.c \
+
+OBJS = 	$(OBJ)client.o\
+	  	$(OBJ)http_request.o \
+	  	$(OBJ)http_server.o \
+	  	$(OBJ)logger.o \
+	  	$(OBJ)main.o \
+	  	$(OBJ)mime_parser.o \
+	  	$(OBJ)util.o \
+
+EXE = server
 
 .SUFFIXES:
-.PHONY: all clean
-all: $(BIN)serveur 
-test-mime_parser: $(BIN)mime_parser
-test-logger: $(BIN)logger
+.PHONY: all clean test server
+all: $(EXE) #$(BIN)serveur $(BIN)client
+
+server: $(OBJS)
+	$(CC) -o $(BIN)$@ $^ $(LDFLAGS)
+
+test: $(TEST)test-mime_parser $(TEST)test-logger
+
+$(TEST)test-mime_parser: $(OBJ)mime_parser.o
+	@if [ -d $(TEST) ]; then : ; else mkdir $(TEST); fi
+	$(CC) -o $@ $^ $(LDFLAGS)
+$(TEST)test-logger: $(OBJ)util.o $(OBJ)logger.o
+	@if [ -d $(TEST) ]; then : ; else mkdir $(TEST); fi
+	$(CC) -o $@ $^ $(LDFLAGS)
 
 # test: test-ftp_multi_serveur test-journal_serveur
 
@@ -33,6 +60,9 @@ test-logger: $(BIN)logger
 
 $(BIN)%: $(OBJ)%.o
 	@if [ -d $(BIN) ]; then : ; else mkdir $(BIN); fi
+	$(CC) -o $@ $^ $(LDFLAGS)
+
+$(BIN)client: $(OBJ)client.o $(OBJ)http_request.o $(OBJ)mime_parser.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 $(OBJ)%.o: $(SRC)%.c $(HC)
