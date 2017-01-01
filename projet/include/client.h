@@ -5,7 +5,6 @@
 
 typedef struct client {
 	http_server* server;
-	/*struct sockaddr_in* client_addr;*/
 	int socket;
 	char ip[INET_ADDRSTRLEN];
 

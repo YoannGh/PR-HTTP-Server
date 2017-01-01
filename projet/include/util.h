@@ -1,4 +1,6 @@
 
 char* readable_filesize(double size, char *buf);
 
-int socket_getline(int socket, char ** line);
+int readline(int fd, char ** line);
+
+int set_nonblock(int fd);

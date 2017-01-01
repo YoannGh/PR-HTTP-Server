@@ -106,8 +106,8 @@ http_server_run_loop(http_server* server) {
 			perror("Creating client thread");
 			/* Error: Do what? */
 		}
+		
 		pthread_detach(thread);
-
 
     	if (pthread_mutex_lock(&server->mutex_nbClient) < 0) {
 			perror("lock mutex nbClient");
@@ -124,11 +124,9 @@ http_server_run_loop(http_server* server) {
 			/* signaled by client threads */
 		}
 
-		if (pthread_mutex_unlock(&log->mutex) < 0) {
-			perror("unlock mutex logger");
+		if (pthread_mutex_unlock(&server->mutex_nbClient) < 0) {
+			perror("unlock mutex nbClient");
 			/* Error: Do what? */
 		}
 	}
-
-
 }
