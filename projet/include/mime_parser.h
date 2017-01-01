@@ -1,3 +1,6 @@
+#ifndef MIME_PARSER_H_
+#define MIME_PARSER_H_
+
 #define MIME_PATH "/etc/mime.types"
 #define ERR_BUFFER_SIZE 1024
 
@@ -11,3 +14,5 @@ int mime_parser_init(mime_parser* mp);
 char* parse_file_ext(mime_parser* mp, char* file_ext);
 
 int mime_parser_destroy(mime_parser* mp);
+
+#endif

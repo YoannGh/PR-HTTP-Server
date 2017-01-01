@@ -70,6 +70,9 @@ char* parse_file_ext(mime_parser* mp, char* file_ext) {
 	int len = 0;
 	char result[2048];
 
+	if(file_ext[0] == '.')
+		file_ext++;
+
 	/*
 		(\S+)(.*)(\s)(txt)(\s) => Match 5 groupes, 1er groupe = ligne qui match, 2nd = 1er groupe(mime_type)
 	*/
@@ -138,5 +141,5 @@ int main(int argc, char* argv[]) {
 	mime_parser_destroy(&mp);
 
 	return 0;
-}
-*/
+}*/
+

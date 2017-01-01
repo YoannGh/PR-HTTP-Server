@@ -1,7 +1,12 @@
-/* includes yet to be added */
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <errno.h>
 
 #include "http_server.h"
-#include "logger.h"
 #include "client.h"
 
 static int init_server(int port, int maxclient) {
@@ -10,7 +15,7 @@ static int init_server(int port, int maxclient) {
 
 	if((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 		perror("socket");
-		return errno;
+		return -1;
 	}
 
 	memset((char *)&sin, 0, sizeof(sin));
@@ -20,7 +25,7 @@ static int init_server(int port, int maxclient) {
 
 	if(bind(sock, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
 		perror("bind");
-		return errno;
+		return -1;
 	}
 
 	listen(sock, maxclient);
@@ -28,7 +33,7 @@ static int init_server(int port, int maxclient) {
 	return sock;
 }
 
-http_server_init(http_server* server, int numPort, int nbMaxClient, int antiDOS) {
+void http_server_init(http_server* server, int numPort, int nbMaxClient, int antiDOS) {
 	
 	server->log = (logger *) malloc(sizeof(logger));
 	logger_init(server->log);
@@ -47,7 +52,7 @@ http_server_init(http_server* server, int numPort, int nbMaxClient, int antiDOS)
 
 }
 
-http_server_destroy(http_server* server) {
+void http_server_destroy(http_server* server) {
 	
 	logger_destroy(server->log);
 	free(server->log);
@@ -61,13 +66,13 @@ http_server_destroy(http_server* server) {
 #endif
 }
 
-http_server_run_loop(http_server* server) {
+void http_server_run_loop(http_server* server) {
 
 	struct sockaddr_in exp;
 	char ip[INET_ADDRSTRLEN];
 	int socket_server, socket_client;
 	socklen_t fromlen;
-	client* client;
+	client* cl;
 	pthread_t thread;
 
 	if ((socket_server = init_server(server->numPort, server->nbMaxClient)) < 0) {
@@ -94,15 +99,15 @@ http_server_run_loop(http_server* server) {
 
     	/* TODO: if IP address exp is blacklisted -> do nothing (pour chaque requete donc pas ici en faite) */
 
-		if(inet_ntop(AF_INET, ((struct sockaddr_in*)&exp)->sin_addr, ip, INET_ADDRSTRLEN) == NULL) { /* thread safe contrairement à inet_ntoa() */
+		if(inet_ntop(AF_INET, &((struct sockaddr_in*)&exp)->sin_addr, ip, INET_ADDRSTRLEN) == NULL) { /* thread safe contrairement à inet_ntoa() */
 #ifdef DEBUG
 			puts("in_addr to string failed");
 #endif
 		}
 
-		client = (client *) malloc(sizeof(client)); /* client must free itself in its thread */
-		client_init(client, server, socket_client, ip);
-		if(pthread_create(&thread, NULL, client_process_socket, (void*) client) != 0) {
+		cl = (client *) malloc(sizeof(client)); /* client must free itself in its thread */
+		client_init(cl, server, socket_client, ip);
+		if(pthread_create(&thread, NULL, client_process_socket, (void*) cl) != 0) {
 			perror("Creating client thread");
 			/* Error: Do what? */
 		}

@@ -15,11 +15,30 @@ LIB=$(DIR)/lib/
 SRC=$(DIR)/src/
 TEST=$(DIR)/test/
 
-HC=
+SOURCES = 	$(SRC)client.c\
+	  		$(SRC)http_request.c \
+	  		$(SRC)http_server.c \
+	  		$(SRC)logger.c \
+	  		$(SRC)main.c \
+	  		$(SRC)mime_parser.c \
+	  		$(SRC)util.c \
+
+OBJS = 	$(OBJ)client.o\
+	  	$(OBJ)http_request.o \
+	  	$(OBJ)http_server.o \
+	  	$(OBJ)logger.o \
+	  	$(OBJ)main.o \
+	  	$(OBJ)mime_parser.o \
+	  	$(OBJ)util.o \
+
+EXE = server
 
 .SUFFIXES:
-.PHONY: all clean test
-all: $(BIN)serveur $(BIN)client
+.PHONY: all clean test server
+all: $(EXE) #$(BIN)serveur $(BIN)client
+
+server: $(OBJS)
+	$(CC) -o $(BIN)$@ $^ $(LDFLAGS)
 
 test: $(TEST)test-mime_parser $(TEST)test-logger
 

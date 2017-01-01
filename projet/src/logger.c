@@ -99,7 +99,7 @@ clean:
 
 }
 
-int main() {
+/*int main() {
 	logger log;
 	struct sockaddr_in sin;
 
@@ -117,4 +117,4 @@ int main() {
 	printf("Written to logfile %s\n", LOG_PATH);
 
 	return 0;
-}
+}*/

@@ -33,8 +33,8 @@ void request_init(request *req, client* client, char* fline, sem_t* prev_req, se
 	req->data_size = 0;
 
 	/* on a direct la premiere ligne */
-	req->first_line = (char *) mallloc((strlen(fline) + 1) * sizeof(char));
-	strcpy(req->req_fline, fline);
+	req->first_line = (char *) malloc((strlen(fline) + 1) * sizeof(char));
+	strcpy(req->first_line, fline);
 
 	req->sem_prev_req_sent = prev_req;
 
@@ -52,18 +52,22 @@ void request_init(request *req, client* client, char* fline, sem_t* prev_req, se
 	memcpy(req->first_line, req_txt, ptr-req_txt);
 	req->first_line[ptr-req_txt] = '\0';
 	*/ 
+
+#ifdef DEBUG
+	puts("Request initialized");
+#endif
 }
 
 void* request_process(void *r)
 {
 	int fd;
-	request *req = r;
+	request *req = (request *) r;
 	struct stat sb;
 	char *path, *fileExt;
 
 	path = getPathRequested(req->first_line);
 	fileExt = strrchr(path, '.');
-
+ 
 	if ((fd = open(path, O_RDONLY, 0600)) == -1)
 	{
 		if(errno == EACCES)
@@ -77,8 +81,10 @@ void* request_process(void *r)
 		/* TODO fork() */
 		puts("Fichier executable");
 	}
-	else
+	else {
+		req->data_size = sb.st_size;
 		req->return_code = 200;
+	}
 
 	sem_wait(req->sem_prev_req_sent);
 
@@ -105,6 +111,10 @@ void request_destroy(request *req)
 	sem_destroy(req->sem_prev_req_sent);
 	free(req->sem_prev_req_sent);
 	free(req->first_line);
+
+#ifdef DEBUG
+	puts("Request destroyed");
+#endif
 }
 
 char* getPathRequested(const char *request)
@@ -174,30 +184,33 @@ void send_200(request *req, int fd, char *fileExt)
 	char buffer[BUFFER_SIZE];
 
 	mime_parser* mp;
-	char *mime_txt, *res;
-	char *header = 
-	  "HTTP/1.1 200 OK\n"
-      "Content-type: ";
+	char *mime_txt;
+	char *header;
+	int header_length;
+	 /* "HTTP/1.1 200 OK\n"
+      "Content-type: ";*/
 
 	mp = req->client->server->parser;
 
+	mime_txt = parse_file_ext(mp, fileExt);
+
 	//+3 pour \n,\n et \0
-    res = calloc(1, strlen(header) + strlen(mime_txt) + 3);
+    //res = calloc(1, strlen(header) + strlen(mime_txt) + 3);
 
-    printf("RES: %s\n", res);
-    printf("HEADER: %s\n", header);
-    strcat(res, header);
-    strcat(res, mime_txt);
-    strcat(res, "\n\n");
+    header_length = snprintf(NULL, 0, "HTTP/1.1 200 OK\nContent-type: %s\nContent-Length: %d\n\n", mime_txt, req->data_size);
+	header = (char *) malloc((header_length + 1) * sizeof(char));
+	sprintf(header, "HTTP/1.1 200 OK\nContent-type: %s\nContent-Length: %d\n\n", mime_txt, req->data_size);
+	header[header_length] = '\0';
 
+    printf("Header reply: '%s'\n", header);
 
-    if(write(req->client->socket, res, strlen(res)) == -1)
+    if(write(req->client->socket, header, strlen(header)) == -1)
     {
     	perror("Write 200 header");
     	return;
     }
 
-	req->data_size+= strlen(header);
+	//req->data_size+= strlen(header);
 
 	while((n = read(fd, buffer, BUFFER_SIZE)) != 0)
 	{
@@ -206,7 +219,7 @@ void send_200(request *req, int fd, char *fileExt)
 			perror("readFile");
 			return;
 		}
-		req->data_size+= n;
+		// req->data_size+= n; 
     	if(write(req->client->socket, buffer, n) == -1)
    	    {
    		 	perror("Write 200");
@@ -215,7 +228,7 @@ void send_200(request *req, int fd, char *fileExt)
 	}
 
 	free(mime_txt);
-	free(res);
+	free(header);
 }
 
 void responseDisplayClean(int id, request *req, char *path)
