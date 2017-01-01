@@ -21,12 +21,20 @@ void client_init(client* client, http_server* server, int socket, char ip[INET_A
 	client->server = server;
 	client->socket = socket;
 	strncpy(client->ip, ip, INET_ADDRSTRLEN);
+	
+	client->prev_req_sem = (sem_t *) malloc(sizeof(sem_t));
+
+	if(sem_init(client->prev_req_sem, 0, 1) < 0) {
+		perror("failed to init first semaphore");	
+	}
 }
 
 void client_destroy(client* client) { /* client must destroy itself */
 	
 	/* Fill later for DDOS */
 	close(client->socket);
+	sem_destroy(client->prev_req_sem);
+	free(client->prev_req_sem);
 	free(client); /* client must free itself in its thread to avoid memory leaks */
 }
 
@@ -38,6 +46,7 @@ void* client_process_socket(void* arg) {
 	int res = 0;
 	request* req;
 	char** line;
+	sem_t* new_req_sem;
 
 	client = (client *) arg;
 	if(set_nonblock(client->socket) < 0) {
@@ -69,7 +78,9 @@ void* client_process_socket(void* arg) {
 			}
 
 			req = (request *) malloc(sizeof(request)); /* requests must free itself too */
-			request_init(req, client, line); /* saves line */
+			new_req_sem = (sem_t *) malloc(sizeof(sem_t));
+			request_init(req, client, line, client->prev_req_sem, new_req_sem); /* saves line and init new_req_sem */
+			client->prev_req_sem = new_req_sem;
 			free(line);
 
 			while(res > 0) {

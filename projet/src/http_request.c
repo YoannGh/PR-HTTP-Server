@@ -1,37 +1,57 @@
-#include <http_request.h>
-#include <mime_parser.h>
-#include <time.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
 #include <string.h>
 #include <errno.h>
+#include <time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <unistd.h>
-#include <stdio.h>
+
+#include "http_request.h"
+#include "mime_parser.h"
+#include "logger.h"
 
 #define BUFFER_SIZE 1024
 #define KRED  "\x1B[31m"
 #define KGRN  "\x1B[32m"
 #define KRESET "\x1B[0m"
 
-void request_init(request *req, client* client, char* req_txt)
+/* il y a nb_requete+1 semaphores alloués mais (nb_requete+1)*2 références sur ces sem
+	la requete N free(prev_req_send) et par conséquent free(reply_done) de la requete N-1
+	le thread client est chargé de free(reply_done) de la dernière requête
+	en maintenant un pointeur sur le dernier semaphore alloué.
+	*/
+
+void request_init(request *req, client* client, char* fline, sem_t* prev_req, sem_t* req_done)
 {
-	char *ptr;
+	/*har *ptr;*/
 
 	req->client = client;
 	req->req_date = time(NULL);
 	req->return_code = 0;
 	req->data_size = 0;
 
-	ptr = req_txt;
+	/* on a direct la premiere ligne */
+	req->first_line = (char *) mallloc((strlen(fline) + 1) * sizeof(char));
+	strcpy(req->req_fline, fline);
+
+	req->sem_prev_req_sent = prev_req;
+
+	if(sem_init(req_done, 0, 0) < 0) {
+		perror("failed to init req done semaphore");	
+	}
+	req->sem_reply_done = req_done;
+
+	/*ptr = req_txt;
 	while(*ptr != '\n')
 		ptr++;
 
 	//On sauvegarde la première ligne de la requete
 	req->first_line = malloc((ptr-req_txt) +1);
 	memcpy(req->first_line, req_txt, ptr-req_txt);
-	req->first_line[ptr-req_txt] = '\0'; 
+	req->first_line[ptr-req_txt] = '\0';
+	*/ 
 }
 
 void* request_process(void *r)
@@ -60,7 +80,7 @@ void* request_process(void *r)
 	else
 		req->return_code = 200;
 
-	//sem_wait(req->sem_can_send);
+	sem_wait(req->sem_prev_req_sent);
 
 	if(req->return_code == 403)
 		send_error403(req);
@@ -72,7 +92,7 @@ void* request_process(void *r)
 #ifdef DEBUG
 	responseDisplayClean(getpid(), req, path);
 #endif 
-	//sem_post(req->sem_reply_done);
+	sem_post(req->sem_reply_done);
 	close(fd);
 	free(path);
 	request_destroy(req);
@@ -82,6 +102,8 @@ void* request_process(void *r)
 
 void request_destroy(request *req)
 {
+	sem_destroy(req->sem_prev_req_sent);
+	free(req->sem_prev_req_sent);
 	free(req->first_line);
 }
 

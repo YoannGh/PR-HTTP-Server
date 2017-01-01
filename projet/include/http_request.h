@@ -4,6 +4,8 @@
 #include <client.h>
 #include <semaphore.h>
 
+#include "client.h"
+
 typedef struct request {
 	client* client;
 	time_t req_date;
@@ -12,11 +14,11 @@ typedef struct request {
 	pid_t thread_id;
 	unsigned short return_code;
 	unsigned int data_size; 
-	sem_t* sem_prev_req_send;
+	sem_t* sem_prev_req_sent;
 	sem_t* sem_reply_done;
 } request;
 
-void request_init(request *req, client* client, char* req_txt);
+void request_init(request *req, client* client, char* fline, sem_t* prev_req, sem_t* req_done);
 
 void* request_process(void *r);
 
