@@ -2,6 +2,7 @@
 #define CLIENT_H_
 
 #include <semaphore.h>
+#include <netinet/in.h> /* for INET_ADDRSTRLEN macro */
 
 #include "http_server.h"
 

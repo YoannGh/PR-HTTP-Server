@@ -19,17 +19,39 @@
 #define KGRN  "\x1B[32m"
 #define KRESET "\x1B[0m"
 
+static char* getPathRequested(const char *request);
+static void send_error500(request *req);
+static void send_error404(request *req);
+static void send_error403(request *req);
+static void send_200(request *req, int fd, char *fileExt);
+static void responseDisplayClean(int id, request *req, char *path);
+static int* processBinaryRequested(request *req, char *path);
+static void send_200_binary(request *req, int pipe_fd);
+void sig_handler(int sig){}
+
 /* il y a nb_requete+1 semaphores alloués mais (nb_requete+1)*2 références sur ces sem
 	la requete N free(prev_req_send) et par conséquent free(reply_done) de la requete N-1
 	le thread client est chargé de free(reply_done) de la dernière requête
 	en maintenant un pointeur sur le dernier semaphore alloué.
 	*/
 
-void request_init(request *req, client* client, char* fline, sem_t* prev_req, sem_t* req_done)
+int request_init(request *req, client* cl, char* fline, sem_t* prev_req, sem_t* req_done)
 {
 	/*har *ptr;*/
+	char method[16];
+	char url[strlen(fline)];
+	char protocol[16];
 
-	req->client = client;
+	sscanf(fline, "%s %s %s", method, url, protocol);
+
+	/* Only support HTTP version 1.0 and 1.1 */
+	if(strcmp(protocol, "HTTP/1.0") && strcmp(protocol, "HTTP/1.1"))
+		return -1;
+	
+	else if (strcmp(method, "GET")) /* Only support GET method */
+		return -1;
+
+	req->cl = cl;
 	req->req_date = time(NULL);
 	req->return_code = 0;
 	req->data_size = 0;
@@ -45,19 +67,11 @@ void request_init(request *req, client* client, char* fline, sem_t* prev_req, se
 	}
 	req->sem_reply_done = req_done;
 
-	/*ptr = req_txt;
-	while(*ptr != '\n')
-		ptr++;
-
-	//On sauvegarde la première ligne de la requete
-	req->first_line = malloc((ptr-req_txt) +1);
-	memcpy(req->first_line, req_txt, ptr-req_txt);
-	req->first_line[ptr-req_txt] = '\0';
-	*/ 
-
 #ifdef DEBUG
 	puts("Request initialized");
 #endif
+
+	return 0;
 }
 
 void* request_process(void *r)
@@ -67,6 +81,9 @@ void* request_process(void *r)
 	request *req = (request *) r;
 	struct stat sb;
 	char *path, *fileExt;
+	logger* log;
+
+	log = req->cl->server->log;
 
 	path = getPathRequested(req->first_line);
 	fileExt = strrchr(path, '.');
@@ -107,13 +124,16 @@ void* request_process(void *r)
 	responseDisplayClean(getpid(), req, path);
 #endif 
 	sem_post(req->sem_reply_done);
+	/* log processed request */
+	log_request(log, req->cl->ip, req->req_date, getpid(), pthread_self(), req->first_line, req->return_code, req->data_size);
 	close(fd);
 	free(path);
-	request_destroy(req);
 	if (pipe_fd)
 		    free(pipe_fd);
 
-	return NULL;
+	request_destroy(req);
+
+	pthread_exit(NULL);
 }
 
 void request_destroy(request *req)
@@ -121,13 +141,14 @@ void request_destroy(request *req)
 	sem_destroy(req->sem_prev_req_sent);
 	free(req->sem_prev_req_sent);
 	free(req->first_line);
+	free(req);
 
 #ifdef DEBUG
 	puts("Request destroyed");
 #endif
 }
 
-char* getPathRequested(const char *request)
+static char* getPathRequested(const char *request)
 {
 	char* path;
 	char* travel;
@@ -146,7 +167,7 @@ char* getPathRequested(const char *request)
 	return path;
 }
 
-void send_error500(request *req)
+static void send_error500(request *req)
 {
 	char *err500 = 
       "HTTP/1.1 500 Internal Server Error\n"
@@ -161,14 +182,14 @@ void send_error500(request *req)
       "</html>\n";
 
 	req->data_size = strlen(err500);
-	if(write(req->client->socket, err500, strlen(err500)) == -1)
+	if(write(req->cl->socket, err500, strlen(err500)) == -1)
    	{
 		perror("Write 500");
     	return;
    	}
 }
 
-void send_error404(request *req)
+static void send_error404(request *req)
 {
 	char *err404 = 
       "HTTP/1.1 404 Not Found\n"
@@ -183,15 +204,16 @@ void send_error404(request *req)
       "</html>\n";
 
 	req->data_size = strlen(err404);
-	if(write(req->client->socket, err404, strlen(err404)) == -1)
+	if(write(req->cl->socket, err404, strlen(err404)) == -1)
    	{
 		perror("Write 404");
     	return;
    	}
 }
 
-void send_error403(request *req)
+static void send_error403(request *req)
 {
+
 	char *err403 = 
       "HTTP/1.1 403 Forbidden\n"
       "Content-type: text/html\n"
@@ -205,14 +227,14 @@ void send_error403(request *req)
       "</html>\n";
 
 	req->data_size = strlen(err403);
-	if(write(req->client->socket, err403, strlen(err403)) == -1)
+	if(write(req->cl->socket, err403, strlen(err403)) == -1)
    	{
 		perror("Write 403");
     	return;
    	}
 }
 
-void send_200(request *req, int fd, char *fileExt)
+static void send_200(request *req, int fd, char *fileExt)
 {
 	int n;
 	char buffer[BUFFER_SIZE];
@@ -222,9 +244,13 @@ void send_200(request *req, int fd, char *fileExt)
 	char *header;
 	int header_length;
 
-	mp = req->client->server->parser;
+	mp = req->cl->server->parser;
 
-	mime_txt = parse_file_ext(mp, fileExt);
+	if(parse_file_ext(mp, fileExt, &mime_txt) < 0) {
+#ifdef DEBUG
+		puts("Error parsing file extension");
+#endif		
+	}
 
 
 	header_length = snprintf(NULL, 0, "HTTP/1.1 200 OK\nContent-type: %s\nContent-Length: %d\n\n", mime_txt, req->data_size);
@@ -234,7 +260,7 @@ void send_200(request *req, int fd, char *fileExt)
 
     printf("Header reply: '%s'\n", header);
 
-    if(write(req->client->socket, header, strlen(header)) == -1)
+    if(write(req->cl->socket, header, strlen(header)) == -1)
     {
     	perror("Write 200 header");
     	return;
@@ -248,7 +274,7 @@ void send_200(request *req, int fd, char *fileExt)
 			return;
 		}
 
-    	if(write(req->client->socket, buffer, n) == -1)
+    	if(write(req->cl->socket, buffer, n) == -1)
    	    {
    		 	perror("Write 200");
     		return;
@@ -259,7 +285,7 @@ void send_200(request *req, int fd, char *fileExt)
 	free(header);
 }
 
-void responseDisplayClean(int id, request *req, char *path)
+static void responseDisplayClean(int id, request *req, char *path)
 {
 	if (req->return_code == 200)
 		printf("ID %d processed request \"%s\" | Size: %d, answer: %d [" KGRN "OK" KRESET"]\n", id, path, req->data_size, req->return_code);
@@ -268,7 +294,7 @@ void responseDisplayClean(int id, request *req, char *path)
 }
 
 
-int* processBinaryRequested(request *req, char *path)
+static int* processBinaryRequested(request *req, char *path)
 {
 	int filedes[2], pid, statval, rc;
 	int *ret;
@@ -320,7 +346,7 @@ int* processBinaryRequested(request *req, char *path)
 	return ret;
 }
 
-void send_200_binary(request *req, int pipe_fd)
+static void send_200_binary(request *req, int pipe_fd)
 {
 	int n, header_length;
 	char buffer[BUFFER_SIZE];
@@ -345,19 +371,17 @@ void send_200_binary(request *req, int pipe_fd)
 	sprintf(header, "HTTP/1.1 200 OK\nContent-type: text/plain\nContent-Length: %d\n\n", req->data_size);
 	header[header_length] = '\0';
 
-	if(write(req->client->socket, header, strlen(header)) == -1)
+	if(write(req->cl->socket, header, strlen(header)) == -1)
 	{
 		perror("Write Header 200 Binary");
 		return;
 	}
 
-	if(write(req->client->socket, buffer, n) == -1)
+	if(write(req->cl->socket, buffer, n) == -1)
 	{
 		perror("Write 200 Binary");
 		return;
     }
 
     free(header);
-}
-
-void sig_handler(int sig){}
+} 
