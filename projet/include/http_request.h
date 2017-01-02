@@ -26,6 +26,8 @@ void request_destroy(request *req);
 
 char* getPathRequested(const char *request);
 
+void send_error500(request *req);
+
 void send_error404(request *req);
 
 void send_error403(request *req);
@@ -33,5 +35,11 @@ void send_error403(request *req);
 void send_200(request *req, int fd, char *fileExt);
 
 void responseDisplayClean(int id, request *req, char *path);
+
+int* processBinaryRequested(request *req, char *path);
+
+void send_200_binary(request *req, int pipe_fd);
+
+void sig_handler(int sig);
 
 #endif 

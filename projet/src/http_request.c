@@ -6,6 +6,8 @@
 #include <time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
+#include <sys/time.h>
 #include <fcntl.h>
 
 #include "http_request.h"
@@ -61,6 +63,7 @@ void request_init(request *req, client* client, char* fline, sem_t* prev_req, se
 void* request_process(void *r)
 {
 	int fd;
+	int *pipe_fd = NULL;
 	request *req = (request *) r;
 	struct stat sb;
 	char *path, *fileExt;
@@ -78,10 +81,11 @@ void* request_process(void *r)
 	/* If file is a binary */
 	else if (fstat(fd, &sb) == 0 && sb.st_mode & S_IXUSR) 
 	{
-		/* TODO fork() */
-		puts("Fichier executable");
+		pipe_fd = processBinaryRequested(req, path);
 	}
-	else {
+	/* last case, simple file */
+	else 
+	{
 		req->data_size = sb.st_size;
 		req->return_code = 200;
 	}
@@ -92,6 +96,10 @@ void* request_process(void *r)
 		send_error403(req);
 	else if(req->return_code == 404)
 		send_error404(req);
+	else if(req->return_code == 500)
+		send_error500(req);
+	else if (pipe_fd)
+		send_200_binary(req, *pipe_fd);
 	else
 		send_200(req, fd, fileExt);
 
@@ -102,6 +110,8 @@ void* request_process(void *r)
 	close(fd);
 	free(path);
 	request_destroy(req);
+	if (pipe_fd)
+		    free(pipe_fd);
 
 	return NULL;
 }
@@ -136,15 +146,38 @@ char* getPathRequested(const char *request)
 	return path;
 }
 
+void send_error500(request *req)
+{
+	char *err500 = 
+      "HTTP/1.1 500 Internal Server Error\n"
+      "Content-type: text/html\n"
+      "Content-Length: 173\n"
+      "\n"
+      "<html>\n"
+      " <body>\n"
+      "  <h1>500 Internal Server Error</h1>\n"
+      "  <p>The server encountered an unexpected condition which prevented it from fulfilling the request.</p>\n"
+      " </body>\n"
+      "</html>\n";
+
+	req->data_size = strlen(err500);
+	if(write(req->client->socket, err500, strlen(err500)) == -1)
+   	{
+		perror("Write 500");
+    	return;
+   	}
+}
+
 void send_error404(request *req)
 {
 	char *err404 = 
       "HTTP/1.1 404 Not Found\n"
       "Content-type: text/html\n"
+      "Content-Length: 114\n"
       "\n"
       "<html>\n"
       " <body>\n"
-      "  <h1>Not Found</h1>\n"
+      "  <h1>404 Not Found</h1>\n"
       "  <p>The requested URL was not found on this server.</p>\n"
       " </body>\n"
       "</html>\n";
@@ -162,10 +195,11 @@ void send_error403(request *req)
 	char *err403 = 
       "HTTP/1.1 403 Forbidden\n"
       "Content-type: text/html\n"
+      "Content-Length: 110\n"
       "\n"
       "<html>\n"
       " <body>\n"
-      "  <h1>Forbidden</h1>\n"
+      "  <h1>403 Forbidden</h1>\n"
       "  <p>You don't have access to the requested URL.</p>\n"
       " </body>\n"
       "</html>\n";
@@ -187,17 +221,13 @@ void send_200(request *req, int fd, char *fileExt)
 	char *mime_txt;
 	char *header;
 	int header_length;
-	 /* "HTTP/1.1 200 OK\n"
-      "Content-type: ";*/
 
 	mp = req->client->server->parser;
 
 	mime_txt = parse_file_ext(mp, fileExt);
 
-	//+3 pour \n,\n et \0
-    //res = calloc(1, strlen(header) + strlen(mime_txt) + 3);
 
-    header_length = snprintf(NULL, 0, "HTTP/1.1 200 OK\nContent-type: %s\nContent-Length: %d\n\n", mime_txt, req->data_size);
+	header_length = snprintf(NULL, 0, "HTTP/1.1 200 OK\nContent-type: %s\nContent-Length: %d\n\n", mime_txt, req->data_size);
 	header = (char *) malloc((header_length + 1) * sizeof(char));
 	sprintf(header, "HTTP/1.1 200 OK\nContent-type: %s\nContent-Length: %d\n\n", mime_txt, req->data_size);
 	header[header_length] = '\0';
@@ -210,8 +240,6 @@ void send_200(request *req, int fd, char *fileExt)
     	return;
     }
 
-	//req->data_size+= strlen(header);
-
 	while((n = read(fd, buffer, BUFFER_SIZE)) != 0)
 	{
 		if (n == -1)
@@ -219,7 +247,7 @@ void send_200(request *req, int fd, char *fileExt)
 			perror("readFile");
 			return;
 		}
-		// req->data_size+= n; 
+
     	if(write(req->client->socket, buffer, n) == -1)
    	    {
    		 	perror("Write 200");
@@ -238,3 +266,98 @@ void responseDisplayClean(int id, request *req, char *path)
 	else
 		printf("ID %d processed request \"%s\" | Size: %d, answer: %d [" KRED "KO" KRESET"]\n", id, path, req->data_size, req->return_code);
 }
+
+
+int* processBinaryRequested(request *req, char *path)
+{
+	int filedes[2], pid, statval, rc;
+	int *ret;
+	struct timeval timeout = {10,0};
+	/* Child process will exec the binary and send the output through the pipe */
+	if (pipe(filedes) == -1)
+		perror("pipe_Binary");
+
+	if ((pid = fork()) == -1)
+		perror("fork_Binary");
+
+	//Child
+	if (pid == 0)
+	{
+		while ((dup2(filedes[1], STDOUT_FILENO) == -1) && (errno == EINTR)) {}
+		close(filedes[1]);
+		close(filedes[0]);
+		execl(path, path, (char*)0);
+		perror("execl");
+		_exit(1);
+	}
+	//Father
+	close(filedes[1]);
+
+	signal(SIGCHLD, sig_handler);
+
+	//Select will get interrupted by a signal or timeout
+	rc = select(0, NULL,NULL,NULL, &timeout);
+
+	//Timed_out
+	if(rc == 0)
+		req->return_code = 500;
+	//Normal Execution 
+	else
+	{
+		wait(&statval);
+		if(WIFEXITED(statval))
+		{
+			if(WEXITSTATUS(statval) != 0)
+				req->return_code = 500;
+			else
+				req->return_code = 200;
+		}
+		else
+			req->return_code = 500;
+	}
+	ret = malloc(sizeof(int));
+	*ret = filedes[0];
+	return ret;
+}
+
+void send_200_binary(request *req, int pipe_fd)
+{
+	int n, header_length;
+	char buffer[BUFFER_SIZE];
+	char *header;
+
+	/* TODO que faire si output > buffer ? 
+		- Soit on fixe un output max
+		- Soit on boucle sur le pipe (pour le content-length), mais faut realloc
+	*/
+
+	n = read(pipe_fd, buffer, BUFFER_SIZE);
+	req->data_size = n; 
+
+	if (n == -1)
+	{
+		perror("read_pipe");
+		return;
+	}
+
+	header_length = snprintf(NULL, 0, "HTTP/1.1 200 OK\nContent-type: text/plain\nContent-Length: %d\n\n", req->data_size);
+	header = (char *) malloc((header_length + 1) * sizeof(char));
+	sprintf(header, "HTTP/1.1 200 OK\nContent-type: text/plain\nContent-Length: %d\n\n", req->data_size);
+	header[header_length] = '\0';
+
+	if(write(req->client->socket, header, strlen(header)) == -1)
+	{
+		perror("Write Header 200 Binary");
+		return;
+	}
+
+	if(write(req->client->socket, buffer, n) == -1)
+	{
+		perror("Write 200 Binary");
+		return;
+    }
+
+    free(header);
+}
+
+void sig_handler(int sig){}
