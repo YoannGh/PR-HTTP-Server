@@ -8,7 +8,6 @@
 
 typedef struct http_server {
 	logger* log;
-	mime_parser* parser;
 	int numPort;
 	int nbMaxClient;
 	int antiDOS;

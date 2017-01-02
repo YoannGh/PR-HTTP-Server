@@ -37,7 +37,6 @@ void sig_handler(int sig){}
 
 int request_init(request *req, client* cl, char* fline, sem_t* prev_req, sem_t* req_done)
 {
-	/*har *ptr;*/
 	char method[16];
 	char url[strlen(fline)];
 	char protocol[16];
@@ -68,6 +67,7 @@ int request_init(request *req, client* cl, char* fline, sem_t* prev_req, sem_t* 
 	req->sem_reply_done = req_done;
 
 #ifdef DEBUG
+	printf("Request received: %s\n", req->first_line);
 	puts("Request initialized");
 #endif
 
@@ -238,31 +238,29 @@ static void send_200(request *req, int fd, char *fileExt)
 {
 	int n;
 	char buffer[BUFFER_SIZE];
-
-	mime_parser* mp;
 	char *mime_txt;
 	char *header;
 	int header_length;
 
-	mp = req->cl->server->parser;
-
-	if(parse_file_ext(mp, fileExt, &mime_txt) < 0) {
+	if(parse_file_ext(fileExt, &mime_txt) < 0) {
 #ifdef DEBUG
 		puts("Error parsing file extension");
 #endif		
 	}
-
 
 	header_length = snprintf(NULL, 0, "HTTP/1.1 200 OK\nContent-type: %s\nContent-Length: %d\n\n", mime_txt, req->data_size);
 	header = (char *) malloc((header_length + 1) * sizeof(char));
 	sprintf(header, "HTTP/1.1 200 OK\nContent-type: %s\nContent-Length: %d\n\n", mime_txt, req->data_size);
 	header[header_length] = '\0';
 
+	free(mime_txt);
+
     printf("Header reply: '%s'\n", header);
 
     if(write(req->cl->socket, header, strlen(header)) == -1)
     {
-    	perror("Write 200 header");
+    	perror("Write 200 header");   	
+		free(header);
     	return;
     }
 
@@ -271,17 +269,18 @@ static void send_200(request *req, int fd, char *fileExt)
 		if (n == -1)
 		{
 			perror("readFile");
+			free(header);
 			return;
 		}
 
     	if(write(req->cl->socket, buffer, n) == -1)
    	    {
    		 	perror("Write 200");
+			free(header);
     		return;
 	    }
 	}
 
-	free(mime_txt);
 	free(header);
 }
 

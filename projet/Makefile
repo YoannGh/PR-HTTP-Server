@@ -42,7 +42,7 @@ server: $(OBJS)
 
 test: $(TEST)test-mime_parser $(TEST)test-logger
 
-$(TEST)test-mime_parser: $(OBJ)mime_parser.o
+$(TEST)test-mime_parser: $(OBJ)mime_parser.o $(OBJ)util.o
 	@if [ -d $(TEST) ]; then : ; else mkdir $(TEST); fi
 	$(CC) -o $@ $^ $(LDFLAGS)
 $(TEST)test-logger: $(OBJ)util.o $(OBJ)logger.o

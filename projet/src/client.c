@@ -84,21 +84,22 @@ void* client_process_socket(void* arg) {
 #ifdef DEBUG
 				puts("readline failed");
 #endif				
-				continue;
+				break;
 			}
 
 			req = (request *) malloc(sizeof(request)); /* requests must free itself too */
 			new_req_sem = (sem_t *) malloc(sizeof(sem_t));
 			/* request_init saves line and init new_req_sem 
 				and checks if request is malformed or not supported */
-			if(request_init(req, cl, line, cl->prev_req_sem, new_req_sem) < 0 ) {
+			request_init(req, cl, line, cl->prev_req_sem, new_req_sem);
+			/*if(request_init(req, cl, line, cl->prev_req_sem, new_req_sem) < 0 ) {
 #ifdef DEBUG
 				puts("request init failed");
 #endif					
 				free(req);
 				free(new_req_sem);
 				continue;
-			} 
+			}*/
 
 			cl->prev_req_sem = new_req_sem;
 			free(line);
