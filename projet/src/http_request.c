@@ -299,11 +299,17 @@ static int* processBinaryRequested(request *req, char *path)
 	int *ret;
 	struct timeval timeout = {10,0};
 	/* Child process will exec the binary and send the output through the pipe */
-	if (pipe(filedes) == -1)
+	if (pipe(filedes) == -1) {
 		perror("pipe_Binary");
+		req->return_code = 500;
+		return NULL;
+	}
 
-	if ((pid = fork()) == -1)
+	if ((pid = fork()) == -1) {
 		perror("fork_Binary");
+		req->return_code = 500;
+		return NULL;
+	}
 
 	//Child
 	if (pid == 0)
@@ -313,7 +319,8 @@ static int* processBinaryRequested(request *req, char *path)
 		close(filedes[0]);
 		execl(path, path, (char*)0);
 		perror("execl");
-		_exit(1);
+		req->return_code = 500;
+		return NULL;
 	}
 	//Father
 	close(filedes[1]);
@@ -329,7 +336,8 @@ static int* processBinaryRequested(request *req, char *path)
 	//Normal Execution 
 	else
 	{
-		wait(&statval);
+		//wait(&statval);
+		waitpid(pid, &statval, WNOHANG);
 		if(WIFEXITED(statval))
 		{
 			if(WEXITSTATUS(statval) != 0)
