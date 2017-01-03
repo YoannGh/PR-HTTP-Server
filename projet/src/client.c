@@ -36,7 +36,23 @@ void client_init(client* cl, http_server* server, int socket, char ip[INET_ADDRS
 
 void client_destroy(client* cl) { /* client must destroy itself */
 	
-	/* Fill later for DDOS */
+	if (pthread_mutex_lock(&cl->server->mutex_nbClient) < 0) {
+		perror("lock mutex nbClient (in client)");
+		/* Error: Do what? */
+	}
+
+	cl->server->nbClient--;
+
+	if(cl->server->nbClient == (cl->server->nbMaxClient - 1)) {
+		/* Then server was waiting for a client to exit, wake it up */
+		pthread_cond_signal(&cl->server->cond_maxClient);
+	}
+
+	if (pthread_mutex_unlock(&cl->server->mutex_nbClient) < 0) {
+		perror("unlock mutex logger (in client)");
+		/* Error: Do what? */
+	}
+
 	close(cl->socket);
 	sem_destroy(cl->prev_req_sem);
 	free(cl->prev_req_sem);
@@ -72,7 +88,7 @@ void* client_process_socket(void* arg) {
 
 		if((res = select(cl->socket+1, &readfds, NULL, NULL, &timeout)) < 0) {
 			perror("select");
-			/* Do what ? */
+			break;
 		}
 
 		if(res == 0) /* timeout expired */
@@ -89,52 +105,36 @@ void* client_process_socket(void* arg) {
 
 			req = (request *) malloc(sizeof(request)); /* requests must free itself too */
 			new_req_sem = (sem_t *) malloc(sizeof(sem_t));
+			
 			/* request_init saves line and init new_req_sem 
 				and checks if request is malformed or not supported */
-			request_init(req, cl, line, cl->prev_req_sem, new_req_sem);
-			/*if(request_init(req, cl, line, cl->prev_req_sem, new_req_sem) < 0 ) {
+			if(request_init(req, cl, line, cl->prev_req_sem, new_req_sem) < 0 ) {
 #ifdef DEBUG
 				puts("request init failed");
 #endif					
 				free(req);
 				free(new_req_sem);
 				continue;
-			}*/
+			}
 
 			cl->prev_req_sem = new_req_sem;
 			free(line);
 
-			while(res > 0) {
-				readline(cl->socket, &line);
-				res = strlen(line);
+			while(res > 0) { /* remove unused headers options from socket */ 
+				res = readline(cl->socket, &line);
+				//res = strlen(line);
 				free(line);
 			}
 
 			if(pthread_create(&tid, NULL, request_process, (void*) req) != 0) {
 				perror("Thread processing request");
-				client_destroy(cl);
-				pthread_exit(NULL);
+				break;
+				//client_destroy(cl);
+				//pthread_exit(NULL);
 			}
 			pthread_detach(tid);
 		}
 
-	}
-
-	if (pthread_mutex_lock(&cl->server->mutex_nbClient) < 0) {
-		perror("lock mutex nbClient (in client)");
-		/* Error: Do what? */
-	}
-
-	cl->server->nbClient--;
-
-	if(cl->server->nbClient == (cl->server->nbMaxClient - 1)) {
-		/* Then server was waiting for a client to exit, wake it up */
-		pthread_cond_signal(&cl->server->cond_maxClient);
-	}
-
-	if (pthread_mutex_unlock(&cl->server->mutex_nbClient) < 0) {
-		perror("unlock mutex logger (in client)");
-		/* Error: Do what? */
 	}
 
 	client_destroy(cl);
