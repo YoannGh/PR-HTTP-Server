@@ -336,7 +336,6 @@ static int* processBinaryRequested(request *req, char *path)
 	//Normal Execution 
 	else
 	{
-		//wait(&statval);
 		waitpid(pid, &statval, WNOHANG);
 		if(WIFEXITED(statval))
 		{
