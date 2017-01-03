@@ -32,6 +32,7 @@ void client_summary_init(client_summary* clsum, char ip[INET_ADDRSTRLEN]) {
 	clsum->requests = (list *) malloc(sizeof(list));
 	list_init(clsum->requests, sizeof(request_summary), request_summary_equals, NULL);
 	clsum->date_blacklist = 0;
+	clsum->totalSize = 0;
 	pthread_mutex_init(&clsum->mutex_listReq, NULL);
 }
 
@@ -141,48 +142,65 @@ int antidos_is_blacklisted(antidos* dos, char ip[INET_ADDRSTRLEN])
 {
 	listNode *client = dos->clients->head;
 	client_summary *clsum;
+	int res =-1;
 
 	while(client != NULL)
 	{
 		clsum = (client_summary *) client->data;
 		if(strcmp(clsum->ip,ip) == 0)
 		{
+			if (pthread_mutex_lock(&clsum->mutex_listReq))
+			{
+				perror("lock mutex clientAntidos");
+				break;
+			}
+
+			list_clean_requests(client);
+			if(clsum->totalSize >= dos->seuil)
+				clsum->date_blacklist = time(NULL) + BLACKLIST_TIME;
+
 			if (difftime(time(NULL), clsum->date_blacklist) >= 0)
-				return 0;
-			printf("Blacklisté: %d\n", clsum->totalSize);
-			return 1;
+			{
+				#ifdef DEBUG
+				printf("Pas blacklisté: %d\n", clsum->totalSize);
+				res = 0;
+				#endif 
+			}
+			else
+			{
+				#ifdef DEBUG
+				printf("Blacklisté: %d\n", clsum->totalSize);
+				res = 1;
+				#endif 
+			}
+		
+			if (pthread_mutex_unlock(&clsum->mutex_listReq))
+			{
+				perror("unlock mutex clientAntidos");
+				res = -1;
+			}
+			break;
 		}
 		client = client->next;
 	}
-	return -1;
+	return res;
 }
-
 
 /*
-void bl(antidos dos)
-{
-	if (antidos_is_blacklisted(&dos, "127.0.0.1"))
-	else
-		printf("Pas Blacklisté: %s\n", "127.0.0.1");
-}
-
 int main()
 {
 	antidos dos;
-	antidos_init(&dos, 2);
+	antidos_init(&dos, 5);
 	antidos_add_client(&dos, "127.0.0.1");
 	antidos_add_request(&dos, "127.0.0.1", time(NULL), 1);
 	antidos_add_request(&dos, "127.0.0.1", time(NULL), 1);
-	bl(dos);
+	antidos_is_blacklisted(&dos, "127.0.0.1");
 	sleep(1);
-	antidos_add_request(&dos, "127.0.0.1", time(NULL), 1);
-	bl(dos);
-	sleep(1);
-	bl(dos);
+	antidos_add_request(&dos, "127.0.0.1", time(NULL), 10);
+	antidos_is_blacklisted(&dos, "127.0.0.1");
+	sleep(4);
+	antidos_is_blacklisted(&dos, "127.0.0.1");
 	antidos_destroy(&dos);
 
-
 	return 0;
-}
-
-*/
+}*/
