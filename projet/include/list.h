@@ -21,11 +21,12 @@ typedef struct list {
 	freeFunction freeFn;
 } list;
  
-void list_init(list *list, int elementSize, equalsFunction equalsFn, freeFunction freeFn);
-void list_destroy(list *list);
+void list_init(list *l, int elementSize, equalsFunction equalsFn, freeFunction freeFn);
+void list_destroy(list *l);
 
 // adds at the end of the list
-void list_add(list *list, void *element);
-void list_remove(list *list, void *element);
+void list_add(list *l, void *element);
+void list_remove(list *l, void *element);
+int list_contains(list *l, void* elem);
  
 #endif

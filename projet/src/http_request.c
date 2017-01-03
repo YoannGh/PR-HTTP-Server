@@ -9,6 +9,7 @@
 #include <sys/wait.h>
 #include <sys/time.h>
 #include <fcntl.h>
+#include <signal.h>
 
 #include "http_request.h"
 #include "mime_parser.h"
@@ -331,8 +332,14 @@ static int* processBinaryRequested(request *req, char *path)
 	rc = select(0, NULL,NULL,NULL, &timeout);
 
 	//Timed_out
-	if(rc == 0)
+	if(rc == 0) {
 		req->return_code = 500;
+		if (kill(pid, SIGKILL) < 0) {
+#ifdef DEBUG
+			perror("error send sigkill to child proc");
+#endif
+    	}		
+	}
 	//Normal Execution 
 	else
 	{
