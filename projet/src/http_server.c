@@ -67,7 +67,7 @@ void http_server_run_loop(http_server* server) {
 	struct sockaddr_in exp;
 	char ip[INET_ADDRSTRLEN];
 	int socket_server, socket_client;
-	socklen_t fromlen;
+	socklen_t fromlen = sizeof exp;
 	client* cl;
 	pthread_t thread;
 
