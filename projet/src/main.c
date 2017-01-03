@@ -2,12 +2,13 @@
 #include <stdio.h>
 
 #include "http_server.h"
+#include "antidos.h"
 
 int main(int argc, char* argv[]) {
 
 	int numPort;
 	int nbMaxClient;
-	int antiDOS;
+	antidos *dos;
 	http_server* server;
 
 	if(argc < 4) {
@@ -17,17 +18,22 @@ int main(int argc, char* argv[]) {
 
     numPort = atoi(argv[1]);
     nbMaxClient = atoi(argv[2]);
-	antiDOS = atoi(argv[3]);
+
+	dos = (antidos*) malloc(sizeof(antidos));
 
 	server = (http_server*) malloc(sizeof(http_server));
 
-	http_server_init(server, numPort, nbMaxClient, antiDOS);
+	antidos_init(dos, atoi(argv[3]));
+
+	http_server_init(server, numPort, nbMaxClient, dos);
 
 	http_server_run_loop(server);
 
 	http_server_destroy(server);
 
 	free(server);
+
+	free(dos);
 
 	exit(EXIT_SUCCESS);
 }

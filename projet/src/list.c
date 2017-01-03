@@ -7,7 +7,8 @@ void list_init(list *l, int elementSize, equalsFunction equalsFn, freeFunction f
 	
 	l->length = 0;
 	l->elementSize = elementSize;
-	l->head = list->tail = NULL;
+	l->head = NULL;
+	l->tail = NULL;
 	l->equalsFn = equalsFn;
 	l->freeFn = freeFn;
 }
@@ -87,7 +88,7 @@ int list_contains(list *l, void* elem) {
 
 	while(currNode) {
 
-		if(l->equalsFn(currNode->data, element)) {
+		if(l->equalsFn(currNode->data, elem)) {
 			return 1;
 		}
 

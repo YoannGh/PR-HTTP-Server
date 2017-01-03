@@ -33,7 +33,7 @@ static int init_server(int port, int maxclient) {
 	return sock;
 }
 
-void http_server_init(http_server* server, int numPort, int nbMaxClient, int antiDOS) {
+void http_server_init(http_server* server, int numPort, int nbMaxClient, antidos *antiDOS) {
 	
 	server->log = (logger *) malloc(sizeof(logger));
 	logger_init(server->log);

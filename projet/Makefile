@@ -17,6 +17,7 @@ TEST=$(DIR)/test/
 
 SOURCES = 	$(SRC)client.c\
 	  		$(SRC)http_request.c \
+	  		$(SRC)antidos.c \
 	  		$(SRC)http_server.c \
 	  		$(SRC)list.c \
 	  		$(SRC)logger.c \
@@ -26,6 +27,7 @@ SOURCES = 	$(SRC)client.c\
 
 OBJS = 	$(OBJ)client.o\
 	  	$(OBJ)http_request.o \
+	  	$(OBJ)antidos.o \
 	  	$(OBJ)http_server.o \
 	  	$(OBJ)list.o \
 	  	$(OBJ)logger.o \

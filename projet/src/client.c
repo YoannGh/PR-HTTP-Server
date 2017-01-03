@@ -15,6 +15,8 @@
 #include "client.h"
 #include "util.h"
 #include "http_request.h"
+#include "antidos.h"
+
 
 void client_init(client* cl, http_server* server, int socket, char ip[INET_ADDRSTRLEN])
 {
@@ -80,6 +82,8 @@ void* client_process_socket(void* arg) {
 		puts("failed to make client socket non blocking");
 #endif
 	}
+
+	antidos_add_client(cl->server->antiDOS, cl->ip);
 
 	FD_ZERO(&readfds);
 	FD_SET(cl->socket, &readfds);
