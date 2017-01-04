@@ -9,6 +9,7 @@
 #include <sys/wait.h>
 #include <sys/time.h>
 #include <fcntl.h>
+#include <signal.h>
 
 #include "http_request.h"
 #include "mime_parser.h"
@@ -87,8 +88,13 @@ void* request_process(void *r)
 
 	path = getPathRequested(req->first_line);
 	fileExt = strrchr(path, '.');
- 
-	if ((fd = open(path, O_RDONLY, 0600)) == -1)
+
+
+	if(antidos_is_blacklisted(req->cl->server->antiDOS, req->cl->ip))
+	{
+		req->return_code = 403;
+	}
+	else if ((fd = open(path, O_RDONLY, 0600)) == -1)
 	{
 		if(errno == EACCES)
 			req->return_code = 403;
@@ -123,6 +129,7 @@ void* request_process(void *r)
 #ifdef DEBUG
 	responseDisplayClean(getpid(), req, path);
 #endif 
+	antidos_add_request(req->cl->server->antiDOS, req->cl->ip, time(NULL), req->data_size);
 	sem_post(req->sem_reply_done);
 	/* log processed request */
 	log_request(log, req->cl->ip, req->req_date, getpid(), pthread_self(), req->first_line, req->return_code, req->data_size);
@@ -331,8 +338,14 @@ static int* processBinaryRequested(request *req, char *path)
 	rc = select(0, NULL,NULL,NULL, &timeout);
 
 	//Timed_out
-	if(rc == 0)
+	if(rc == 0) {
 		req->return_code = 500;
+		if (kill(pid, SIGKILL) < 0) {
+#ifdef DEBUG
+			perror("error send sigkill to child proc");
+#endif
+    	}		
+	}
 	//Normal Execution 
 	else
 	{

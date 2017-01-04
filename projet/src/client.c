@@ -15,6 +15,8 @@
 #include "client.h"
 #include "util.h"
 #include "http_request.h"
+#include "antidos.h"
+
 
 void client_init(client* cl, http_server* server, int socket, char ip[INET_ADDRSTRLEN])
 {
@@ -38,7 +40,6 @@ void client_destroy(client* cl) { /* client must destroy itself */
 	
 	if (pthread_mutex_lock(&cl->server->mutex_nbClient) < 0) {
 		perror("lock mutex nbClient (in client)");
-		/* Error: Do what? */
 	}
 
 	cl->server->nbClient--;
@@ -50,7 +51,6 @@ void client_destroy(client* cl) { /* client must destroy itself */
 
 	if (pthread_mutex_unlock(&cl->server->mutex_nbClient) < 0) {
 		perror("unlock mutex logger (in client)");
-		/* Error: Do what? */
 	}
 
 	close(cl->socket);
@@ -122,15 +122,12 @@ void* client_process_socket(void* arg) {
 
 			while(res > 0) { /* remove unused headers options from socket */ 
 				res = readline(cl->socket, &line);
-				//res = strlen(line);
 				free(line);
 			}
 
 			if(pthread_create(&tid, NULL, request_process, (void*) req) != 0) {
 				perror("Thread processing request");
 				break;
-				//client_destroy(cl);
-				//pthread_exit(NULL);
 			}
 			pthread_detach(tid);
 		}
