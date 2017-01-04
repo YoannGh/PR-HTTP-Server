@@ -86,7 +86,6 @@ void http_server_run_loop(http_server* server) {
 
 		if((socket_client = accept(socket_server, (struct sockaddr *)&exp, &fromlen)) < 0) {
 			perror("error accept client");
-			/* Error: Do what? */
     	}
 
 #ifdef DEBUG
@@ -103,16 +102,15 @@ void http_server_run_loop(http_server* server) {
 
 		cl = (client *) malloc(sizeof(client)); /* client must free itself in its thread */
 		client_init(cl, server, socket_client, ip);
+		antidos_add_client(server->antiDOS, ip);
 		if(pthread_create(&thread, NULL, client_process_socket, (void*) cl) != 0) {
 			perror("Creating client thread");
-			/* Error: Do what? */
 		}
 		
 		pthread_detach(thread);
 
     	if (pthread_mutex_lock(&server->mutex_nbClient) < 0) {
 			perror("lock mutex nbClient");
-			/* Error: Do what? */
 		}
 
 		server->nbClient++;
@@ -127,7 +125,6 @@ void http_server_run_loop(http_server* server) {
 
 		if (pthread_mutex_unlock(&server->mutex_nbClient) < 0) {
 			perror("unlock mutex nbClient");
-			/* Error: Do what? */
 		}
 	}
 }
